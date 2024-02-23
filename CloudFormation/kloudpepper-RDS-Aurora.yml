@@ -1,0 +1,200 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "CloudFormation template to create Amazon Aurora DB - MySQL"
+
+Parameters:
+  EnvironmentType:
+    Type: String
+
+  EnvironmentName:
+    Type: String
+
+  DBPrivateSubnet1:
+    Type: String
+
+  DBPrivateSubnet2:
+    Type: String
+
+  DBSecurityGroup:
+    Type: String
+
+  DBType:
+    Type: String
+
+  CreateNewAuroraDB:
+    Type: String
+
+  DBSnapshotARN:
+    Type: String
+
+
+Conditions:
+  isProdEnvironmentType: !Equals [!Ref EnvironmentType, prod]
+  isTrueCreateNewAuroraDB: !Equals [!Ref CreateNewAuroraDB, TRUE]
+
+Resources:
+  RDSsubnetgroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Amazon Aurora DB Subnet Groups
+      SubnetIds: 
+        - !Ref DBPrivateSubnet1
+        - !Ref DBPrivateSubnet2
+
+  DBClusterParameterGroup:
+    Type: AWS::RDS::DBClusterParameterGroup
+    #DeletionPolicy: Retain
+    Properties:
+      Description: "DB Cluster Parameter Group"
+      Family: aurora-mysql5.7
+      Parameters: # https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/AuroraMySQL.Reference.html#AuroraMySQL.Reference.Parameters.Cluster #
+        time_zone: America/Bogota
+        character_set_client: utf8
+        character_set_connection: utf8
+        character_set_database: utf8
+        character_set_filesystem: utf8
+        character_set_results: utf8
+        character_set_server: utf8
+        collation_connection: utf8_general_ci
+        collation_server: utf8_general_ci
+        aurora_parallel_query: 'ON'
+
+  DBParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties:
+      Description: "DB Parameter Group"
+      Family: aurora-mysql5.7
+      Parameters:
+        slow_query_log: '1'
+        long_query_time: '10'
+        log_output: 'FILE'
+        innodb_print_all_deadlocks: '1'
+
+  AuroraDBCluster:
+    Type: AWS::RDS::DBCluster
+    DependsOn:
+      - RDSlogin
+      - RDSsubnetgroup
+      - DBClusterParameterGroup
+    DeletionPolicy: Delete
+    #DeletionPolicy: Retain
+    #DeletionPolicy: Snapshot
+    #UpdateReplacePolicy: Snapshot
+    Properties:
+      DBClusterIdentifier: !Sub "${EnvironmentName}-DB-Cluster"
+      DatabaseName: !If [isTrueCreateNewAuroraDB, !Sub "${EnvironmentName}DB", !Ref AWS::NoValue]
+      DBClusterParameterGroupName: !Ref DBClusterParameterGroup
+      SnapshotIdentifier: !If [isTrueCreateNewAuroraDB, !Ref AWS::NoValue, !Ref DBSnapshotARN]
+      StorageEncrypted: !If [isTrueCreateNewAuroraDB, !If [isProdEnvironmentType, true, false], !Ref AWS::NoValue]
+      VpcSecurityGroupIds:
+        - !Ref DBSecurityGroup
+      DBSubnetGroupName: !Ref RDSsubnetgroup
+      BackupRetentionPeriod: 30
+      Engine: aurora-mysql
+      EngineMode: provisioned
+      EngineVersion: '5.7.mysql_aurora.2.10.2'
+      DeletionProtection: !If [isProdEnvironmentType, true, false]
+      EnableCloudwatchLogsExports:
+        - audit
+        - error
+        - general
+        - slowquery
+      Port: '33066'
+      PreferredBackupWindow: '00:30-01:30'
+      PreferredMaintenanceWindow: 'sun:22:30-sun:23:30'
+      MasterUsername:
+        !If [isTrueCreateNewAuroraDB, !Sub '{{resolve:secretsmanager:${RDSlogin}::username}}', !Ref AWS::NoValue]
+      MasterUserPassword:
+        !If [isTrueCreateNewAuroraDB, !Sub '{{resolve:secretsmanager:${RDSlogin}::password}}', !Ref AWS::NoValue]
+      Tags:
+        -
+          Key: Environment
+          Value: !Ref EnvironmentName
+        - 
+          Key: Name
+          Value: !Sub ${EnvironmentName}-DB-cluster
+
+# Amazon RDS automatically assigns a writer and reader DB instances in the cluster.
+# Use the cluster endpoint to read and write data, not the individual DB instance endpoints.
+
+  DBInstance1:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: !Sub ${EnvironmentName}-DB-Instance1
+      AllowMajorVersionUpgrade: false
+      AutoMinorVersionUpgrade: true
+      CopyTagsToSnapshot: true
+      DBClusterIdentifier: !Ref AuroraDBCluster
+      DBInstanceClass: !Ref DBType
+      DBParameterGroupName: !Ref DBParameterGroup
+      AvailabilityZone: !Sub "${AWS::Region}a"
+      Engine: aurora-mysql
+      PubliclyAccessible: 'false'
+      EnablePerformanceInsights: 'false'
+      MultiAZ: 'false'
+      Tags:
+        -
+          Key: Environment
+          Value: !Ref EnvironmentName
+        - 
+          Key: Name
+          Value: !Sub ${EnvironmentName}-DB-Instance1
+
+  DBInstance2:
+    Type: AWS::RDS::DBInstance
+    Condition: isProdEnvironmentType
+    Properties:
+      DBInstanceIdentifier: !Sub ${EnvironmentName}-DB-Instance2
+      AllowMajorVersionUpgrade: false
+      AutoMinorVersionUpgrade: true
+      CopyTagsToSnapshot: true
+      DBClusterIdentifier: !Ref AuroraDBCluster
+      DBInstanceClass: !Ref DBType
+      DBParameterGroupName: !Ref DBParameterGroup
+      AvailabilityZone: !Sub "${AWS::Region}b"
+      Engine: aurora-mysql
+      PubliclyAccessible: 'false'
+      EnablePerformanceInsights: 'false'
+      MultiAZ: 'false'
+      Tags:
+        -
+          Key: Environment
+          Value: !Ref EnvironmentName
+        - 
+          Key: Name
+          Value: !Sub ${EnvironmentName}-DB-Instance2
+
+  RDSlogin:
+    Type: AWS::SecretsManager::Secret
+    Condition: isTrueCreateNewAuroraDB
+    Properties:
+      Name: !Sub ${EnvironmentName}-RDSlogin
+      Description: Login generado por Secrets Manager
+      GenerateSecretString:
+        SecretStringTemplate: '{"username":"usermaster"}'
+        GenerateStringKey: 'password'
+        PasswordLength: 16
+        ExcludePunctuation: true
+        ExcludeCharacters: "\"'@/\\"
+        IncludeSpace: false
+
+  SecretRDSInstanceAttachment:
+    Type: AWS::SecretsManager::SecretTargetAttachment
+    Condition: isTrueCreateNewAuroraDB
+    Properties:
+      SecretId: !Ref RDSlogin
+      TargetId: !Ref AuroraDBCluster
+      TargetType: AWS::RDS::DBCluster
+
+
+Outputs:
+  RDSEnpointAddr:
+    Description: "Amazon Aurora Cluster/Writer endpoint"
+    Value: !GetAtt AuroraDBCluster.Endpoint.Address
+
+  RDSReaderEnpointAddr:
+    Description: "Amazon Aurora Reader Endpoint"
+    Value: !GetAtt AuroraDBCluster.ReadEndpoint.Address
+
+  RDSEnpointPort:
+    Description: Database port
+    Value: !GetAtt AuroraDBCluster.Endpoint.Port

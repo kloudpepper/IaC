@@ -1,0 +1,236 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "CloudFormation root template | Nested Stacks"
+
+# Parameter definition
+Parameters:
+  EnvironmentType:
+    Description: "Select environment type: Productive or Non-Productive"
+    Type: String
+    AllowedValues:
+      - prod
+      - nonprod
+
+  EnvironmentName:
+    Description: "Insert environment name. Example: kloudpepper-test"
+    Type: String
+
+  VpcCIDR:
+    Description: "Insert VPC CIDR"
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
+    ConstraintDescription: Please insert a valid range
+
+  PublicSubnet1CIDR:
+    Description: "Insert public subnet CIDR of zone A"
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
+    ConstraintDescription: Please insert a valid range
+
+  PublicSubnet2CIDR:
+    Description: "Insert public subnet CIDR of zone B"
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
+    ConstraintDescription: Please insert a valid range
+
+  PrivateSubnet1CIDR:
+    Description: "Insert private subnet CIDR of zone A"
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
+    ConstraintDescription: Please insert a valid range
+
+  PrivateSubnet2CIDR:
+    Description: "Insert private subnet CIDR of zone B"
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
+    ConstraintDescription: Please insert a valid range
+
+  DBPrivateSubnet1CIDR:
+    Description: "Insert DB private subnet CIDR of zone A"
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
+    ConstraintDescription: Please insert a valid range
+
+  DBPrivateSubnet2CIDR:
+    Description: "Insert DB private subnet CIDR of zone B"
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
+    ConstraintDescription: Please insert a valid range
+
+  DesiredCount:
+    Description: "Insert the number of desired tasks to be executed in each service"
+    Type: Number
+    Default: 1
+
+  ImageUrlApp:
+    Description: "Insert the url of the App container image"
+    Type: String
+
+Mappings: 
+  Aurora:
+    InstanceTypes:
+      prod: "db.t2.medium"    # 2 vCPUs + 4 GB
+      nonprod: "db.t2.small"  # 1 vCPUs + 2 GB
+
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - 
+        Label: 
+          default: "ENVIRONMENT PARAMETERS"
+        Parameters:
+          - EnvironmentType
+          - EnvironmentName
+      - 
+        Label:
+          default: "NETWORK PARAMETERS"
+        Parameters:
+          - VpcCIDR
+          - PublicSubnet1CIDR
+          - PublicSubnet2CIDR
+          - PrivateSubnet1CIDR
+          - PrivateSubnet2CIDR
+          - DBPrivateSubnet1CIDR
+          - DBPrivateSubnet2CIDR
+      -
+        Label: 
+          default: "ECS PARAMETERS"
+        Parameters:
+          - DesiredCount
+          - ImageUrlApp
+
+# Nested Stacks
+Resources:
+  VPCStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-VPC.yml
+      TimeoutInMinutes: 5
+      Parameters:
+        EnvironmentName: !Ref EnvironmentName
+        VpcCIDR: !Ref VpcCIDR
+        PublicSubnet1CIDR: !Ref PublicSubnet1CIDR
+        PublicSubnet2CIDR: !Ref PublicSubnet2CIDR
+        PrivateSubnet1CIDR: !Ref PrivateSubnet1CIDR
+        PrivateSubnet2CIDR: !Ref PrivateSubnet2CIDR
+        DBPrivateSubnet1CIDR: !Ref DBPrivateSubnet1CIDR
+        DBPrivateSubnet2CIDR: !Ref DBPrivateSubnet2CIDR
+
+  NACLStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-NACL.yml
+      TimeoutInMinutes: 5
+      Parameters:
+        EnvironmentType: !Ref EnvironmentType
+        EnvironmentName: !Ref EnvironmentName
+        VpcID: !GetAtt VPCStack.Outputs.VPC
+        VpcCIDR: !Ref VpcCIDR
+        PublicSubnet1CIDR: !Ref PublicSubnet1CIDR
+        PublicSubnet2CIDR: !Ref PublicSubnet2CIDR
+        PrivateSubnet1CIDR: !Ref PrivateSubnet1CIDR
+        PrivateSubnet2CIDR: !Ref PrivateSubnet2CIDR
+        PublicSubnet1: !GetAtt VPCStack.Outputs.PublicSubnet1
+        PublicSubnet2: !GetAtt VPCStack.Outputs.PublicSubnet2
+        PrivateSubnet1: !GetAtt VPCStack.Outputs.PrivateSubnet1
+        PrivateSubnet2: !GetAtt VPCStack.Outputs.PrivateSubnet2
+        DBPrivateSubnet1: !GetAtt VPCStack.Outputs.DBPrivateSubnet1
+        DBPrivateSubnet2: !GetAtt VPCStack.Outputs.DBPrivateSubnet2
+
+  SGStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: NACLStack
+    Properties:
+      TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-SG.yml
+      TimeoutInMinutes: 5
+      Parameters:
+        EnvironmentType: !Ref EnvironmentType
+        EnvironmentName: !Ref EnvironmentName
+        VpcID: !GetAtt VPCStack.Outputs.VPC
+        VpcCIDR: !Ref VpcCIDR
+
+  VPCEndpointStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-VPCEndpoints.yml
+      TimeoutInMinutes: 30
+      Parameters:
+        VpcID: !GetAtt VPCStack.Outputs.VPC
+        PrivateSubnet1: !GetAtt VPCStack.Outputs.PrivateSubnet1
+        PrivateSubnet2: !GetAtt VPCStack.Outputs.PrivateSubnet2
+        VPCEnpointSecurityGroup: !GetAtt SGStack.Outputs.VPCEnpointSecurityGroup
+        PrivateRouteTable: !GetAtt VPCStack.Outputs.PrivateRouteTable
+
+  EFSStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-EFS.yml
+      TimeoutInMinutes: 10
+      Parameters:
+        EnvironmentType: !Ref EnvironmentType
+        EnvironmentName: !Ref EnvironmentName
+        PrivateSubnet1: !GetAtt VPCStack.Outputs.PrivateSubnet1
+        PrivateSubnet2: !GetAtt VPCStack.Outputs.PrivateSubnet2
+        EFSSecurityGroup: !GetAtt SGStack.Outputs.EFSSecurityGroup
+
+  ALBStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-ALB.yml
+      TimeoutInMinutes: 10
+      Parameters:
+        EnvironmentType: !Ref EnvironmentType
+        EnvironmentName: !Ref EnvironmentName
+        VpcID: !GetAtt VPCStack.Outputs.VPC
+        PublicSubnet1: !GetAtt VPCStack.Outputs.PublicSubnet1
+        PublicSubnet2: !GetAtt VPCStack.Outputs.PublicSubnet2
+        PrivateSubnet1: !GetAtt VPCStack.Outputs.PrivateSubnet1
+        PrivateSubnet2: !GetAtt VPCStack.Outputs.PrivateSubnet2
+        ALBSecurityGroup: !GetAtt SGStack.Outputs.ALBSecurityGroup
+
+  RDSStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - VPCEndpointStack
+    Properties:
+      TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-RDS-Aurora.yml
+      TimeoutInMinutes: 60
+      Parameters:
+        EnvironmentType: !Ref EnvironmentType
+        EnvironmentName: !Ref EnvironmentName
+        DBPrivateSubnet1: !GetAtt VPCStack.Outputs.DBPrivateSubnet1
+        DBPrivateSubnet2: !GetAtt VPCStack.Outputs.DBPrivateSubnet2
+        DBSecurityGroup: !GetAtt SGStack.Outputs.DBSecurityGroup
+        DBType: !FindInMap [Aurora, InstanceTypes, !Ref EnvironmentType]
+
+  ECSStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-ECS-Fargate.yml
+      TimeoutInMinutes: 30
+      Parameters:
+        EnvironmentType: !Ref EnvironmentType
+        EnvironmentName: !Ref EnvironmentName
+        PrivateSubnet1: !GetAtt VPCStack.Outputs.PrivateSubnet1
+        PrivateSubnet2: !GetAtt VPCStack.Outputs.PrivateSubnet2
+        ECSSecurityGroup: !GetAtt SGStack.Outputs.ECSSecurityGroup
+        DesiredCount: !Ref DesiredCount
+        ImageUrlApp: !Ref ImageUrlApp
+        RDSEnpointPort: !GetAtt RDSStack.Outputs.RDSEnpointPort
+        TargetGroupAPP: !GetAtt ALBStack.Outputs.TargetGroupAPP
+        FileSystemId: !GetAtt EFSStack.Outputs.FileSystemId
+        AccessPointIdDataApp: !GetAtt EFSStack.Outputs.AccessPointIdDataApp

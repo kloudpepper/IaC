@@ -1,0 +1,265 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "CloudFormation template to create ALB"
+
+Parameters:
+  PrivateDomainName:
+    Type: String
+
+  EnvironmentType:
+    Type: String
+
+  EnvironmentName:
+    Type: String
+
+  VpcID:
+    Type: String
+
+  PublicSubnet1:
+    Type: String
+
+  PublicSubnet2:
+    Type: String
+
+  PrivateSubnet1:
+    Type: String
+
+  PrivateSubnet2:
+    Type: String
+
+  ALBSecurityGroup:
+    Type: String
+
+  CreateALBCertificate:
+    Type: String
+
+  OtherARNCertificate:
+    Type: String
+
+
+Conditions:
+  isProdEnvironmentType: !Equals [!Ref EnvironmentType, prod]
+  isTrueCreateCertificate: !Equals [!Ref CreateALBCertificate, TRUE]
+
+
+Resources:
+# Create an internal certificate for ALB (only if a condition is true)
+  InternalRootCA:
+    Type: AWS::ACMPCA::CertificateAuthority
+    Condition: isTrueCreateCertificate
+    Properties:
+      Type: ROOT
+      KeyAlgorithm: RSA_2048
+      SigningAlgorithm: SHA256WITHRSA
+      Subject:
+        Country: EC       # Change to your country
+        State: Pichincha  # Change to your state
+        Locality: Quito   # Change to your locality
+        Organization: !Sub ${EnvironmentName}
+        OrganizationalUnit: !Sub ${EnvironmentName}
+        CommonName: Root CA
+        SerialNumber: '1234567890' # Insert valid serial number
+      RevocationConfiguration:
+        CrlConfiguration:
+          Enabled: false
+
+  InternalRootCACertificate:
+    Type: AWS::ACMPCA::Certificate
+    Condition: isTrueCreateCertificate
+    Properties:
+      CertificateAuthorityArn: !Ref InternalRootCA
+      CertificateSigningRequest: !GetAtt InternalRootCA.CertificateSigningRequest
+      SigningAlgorithm: SHA256WITHRSA
+      TemplateArn: 'arn:aws:acm-pca:::template/RootCACertificate/V1'
+      Validity:
+        Type: YEARS
+        Value: 5
+
+  InternalRootCAActivation:
+    Type: AWS::ACMPCA::CertificateAuthorityActivation
+    Condition: isTrueCreateCertificate
+    Properties:
+      CertificateAuthorityArn: !Ref InternalRootCA
+      Certificate: !GetAtt InternalRootCACertificate.Certificate
+      Status: ACTIVE
+
+  ACMInternalCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Condition: isTrueCreateCertificate
+    DependsOn: InternalRootCAActivation
+    Properties:
+      CertificateAuthorityArn: !Ref InternalRootCA
+      DomainName: !Ref PrivateDomainName
+      SubjectAlternativeNames:
+        - !Sub "*.${PrivateDomainName}"
+
+# Create target groups of containers: App1, App2
+  TargetGroupAPP1:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 60
+      HealthCheckPath: "/"
+      Port: 8554
+      Protocol: "HTTPS"
+      HealthCheckPort: "traffic-port"
+      HealthCheckProtocol: "HTTPS"
+      HealthCheckTimeoutSeconds: 30
+      UnhealthyThresholdCount: 10
+      TargetType: "ip"
+      Matcher: 
+        HttpCode: "200"
+      HealthyThresholdCount: 2
+      VpcId: !Ref VpcID
+      Name: !Sub ${EnvironmentName}-APP1-TG
+      HealthCheckEnabled: true
+      TargetGroupAttributes: 
+        - 
+          Key: "stickiness.enabled"
+          Value: "false"
+        - 
+          Key: "deregistration_delay.timeout_seconds"
+          Value: "60"
+        - 
+          Key: "stickiness.type"
+          Value: "lb_cookie"
+        - 
+          Key: "stickiness.lb_cookie.duration_seconds"
+          Value: "86400"
+        - 
+          Key: "slow_start.duration_seconds"
+          Value: "0"
+        - 
+          Key: "load_balancing.algorithm.type"
+          Value: "round_robin"
+
+  TargetGroupAPP2:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 60
+      HealthCheckPath: "/"
+      Port: 8554
+      Protocol: "HTTPS"
+      HealthCheckPort: "traffic-port"
+      HealthCheckProtocol: "HTTPS"
+      HealthCheckTimeoutSeconds: 30
+      UnhealthyThresholdCount: 10
+      TargetType: "ip"
+      Matcher: 
+        HttpCode: "200"
+      HealthyThresholdCount: 2
+      VpcId: !Ref VpcID
+      Name: !Sub ${EnvironmentName}-APP2-TG
+      HealthCheckEnabled: true
+      TargetGroupAttributes:
+        - 
+          Key: "stickiness.enabled"
+          Value: "false"
+        - 
+          Key: "deregistration_delay.timeout_seconds"
+          Value: "60"
+        - 
+          Key: "stickiness.type"
+          Value: "lb_cookie"
+        - 
+          Key: "stickiness.lb_cookie.duration_seconds"
+          Value: "86400"
+        - 
+          Key: "slow_start.duration_seconds"
+          Value: "0"
+        - 
+          Key: "load_balancing.algorithm.type"
+          Value: "round_robin"
+
+# Create Internal ALB
+  ApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub ${EnvironmentName}-ALB
+      Scheme: !If [isProdEnvironmentType, "internet-facing", "internal"]
+      Type: "application"
+      Subnets:
+        - !If [isProdEnvironmentType, !Ref PublicSubnet1, !Ref PrivateSubnet1]
+        - !If [isProdEnvironmentType, !Ref PublicSubnet2, !Ref PrivateSubnet2]
+      SecurityGroups: 
+        - !Ref ALBSecurityGroup
+      IpAddressType: "ipv4"
+      LoadBalancerAttributes: 
+        - 
+          Key: "access_logs.s3.enabled"
+          Value: "false"
+        - 
+          Key: "idle_timeout.timeout_seconds"
+          Value: "60"
+        - 
+          Key: "deletion_protection.enabled"
+          Value: !If [isProdEnvironmentType, "true", "false"]
+        - 
+          Key: "routing.http2.enabled"
+          Value: "true"
+        - 
+          Key: "routing.http.drop_invalid_header_fields.enabled"
+          Value: !If [isProdEnvironmentType, "true", "false"]
+      Tags:
+        - 
+          Key: Environment
+          Value: !Ref EnvironmentName
+        - 
+          Key: Name
+          Value: !Sub ${EnvironmentName}-ALB
+
+# Create HTTPS listener
+  HTTPSListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    DependsOn: ApplicationLoadBalancer
+    Properties:
+      LoadBalancerArn: !Ref ApplicationLoadBalancer
+      Port: !If [isProdEnvironmentType, 443, 8445]
+      Protocol: "HTTPS"
+      SslPolicy: "ELBSecurityPolicy-FS-1-2-Res-2020-10"
+      Certificates: 
+        - CertificateArn: !If [isTrueCreateCertificate, !Ref ACMInternalCertificate, !Ref OtherARNCertificate]
+      DefaultActions:
+        - Type: fixed-response
+          FixedResponseConfig:
+            ContentType: "text/plain"
+            MessageBody: "Wrong path"
+            StatusCode: "503"
+
+# Create forwarding rules
+  ListenerRule1:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    DependsOn: HTTPSListener
+    Properties:
+      Actions:
+        - Type: "forward"
+          ForwardConfig:
+            TargetGroups:
+              - TargetGroupArn: !Ref TargetGroupAPP1
+                Weight: 1 # 50%
+              - TargetGroupArn: !Ref TargetGroupAPP2
+                Weight: 1 # 50%
+            TargetGroupStickinessConfig: 
+              Enabled: false
+      Conditions:
+        - Field: "path-pattern"
+          Values:
+            - "/demo*"
+      ListenerArn: !Ref HTTPSListener
+      Priority: 1
+
+
+Outputs:
+  AlbCanonicalHostedZoneID:
+    Description: Export ALB ID for Route53
+    Value: !GetAtt 'ApplicationLoadBalancer.CanonicalHostedZoneID'
+
+  AlbDNSName:
+    Description: Export ALB name for Route53
+    Value: !GetAtt 'ApplicationLoadBalancer.DNSName'
+
+  TargetGroupAPP1:
+    Description: Export Target Group for container App1
+    Value: !Ref TargetGroupAPP1
+
+  TargetGroupAPP2:
+    Description: Export Target Group for container App2
+    Value: !Ref TargetGroupAPP2

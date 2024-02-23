@@ -1,0 +1,110 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "CloudFormation template to create EFS"
+
+Parameters:
+  EnvironmentType:
+    Type: String
+
+  EnvironmentName:
+    Type: String
+
+  PrivateSubnet1:
+    Type: String
+
+  PrivateSubnet2:
+    Type: String
+
+  EFSSecurityGroup:
+    Type: String
+
+
+Conditions:
+  isProdEnvironmentType: !Equals [!Ref EnvironmentType, prod]
+
+
+Resources:
+  EFS:
+    Type: AWS::EFS::FileSystem
+    Properties:
+      PerformanceMode: !If [isProdEnvironmentType, maxIO, generalPurpose]
+      BackupPolicy:
+        Status: !If [isProdEnvironmentType, ENABLED, DISABLED]
+      Encrypted: !If [isProdEnvironmentType, true, false]
+      LifecyclePolicies:
+        - TransitionToIA: AFTER_30_DAYS
+        - TransitionToPrimaryStorageClass: AFTER_1_ACCESS
+      ThroughputMode: bursting
+      FileSystemTags:
+        - 
+          Key: Environment
+          Value: !Ref EnvironmentName
+        - 
+          Key: Name
+          Value: !Sub ${EnvironmentName}-EFS
+
+  EFSmounttarget1:
+    Type: AWS::EFS::MountTarget
+    DependsOn:
+      - EFS
+    Properties:
+      FileSystemId: !Ref EFS
+      SubnetId: !Ref PrivateSubnet1
+      SecurityGroups: 
+        - !Ref EFSSecurityGroup
+  
+  EFSmounttarget2:
+    Type: AWS::EFS::MountTarget
+    DependsOn:
+      - EFS
+    Properties:
+      FileSystemId: !Ref EFS
+      SubnetId: !Ref PrivateSubnet2
+      SecurityGroups: 
+        - !Ref EFSSecurityGroup
+
+  FSDataApp1Accesspoint:
+    Type: AWS::EFS::AccessPoint
+    DependsOn:
+      - EFSmounttarget1
+      - EFSmounttarget2
+    Properties:
+      FileSystemId: !Ref EFS
+      AccessPointTags:
+        - Key: Name
+          Value: data-app1
+      RootDirectory:
+        Path: /data/app1
+        CreationInfo:
+          OwnerGid: '1414'
+          OwnerUid: '1414'
+          Permissions: '0644'
+  
+  FSDataApp2Accesspoint:
+    Type: AWS::EFS::AccessPoint
+    DependsOn:
+      - EFSmounttarget1
+      - EFSmounttarget2
+    Properties:
+      FileSystemId: !Ref EFS
+      AccessPointTags:
+        - Key: Name
+          Value: data-app2
+      RootDirectory:
+        Path: /data/app2
+        CreationInfo:
+          OwnerGid: '1414'
+          OwnerUid: '1414'
+          Permissions: '0644'
+
+Outputs:
+  FileSystemId:
+    Description: Export FileSystemId
+    Value: !GetAtt 'EFS.FileSystemId'
+
+  AccessPointIdDataApp1:
+    Description: Export AccessPointId app1
+    Value: !GetAtt 'FSDataApp1Accesspoint.AccessPointId'
+
+  AccessPointIdDataApp2:
+    Description: Export AccessPointId app2
+    Value: !GetAtt 'FSDataApp2Accesspoint.AccessPointId'

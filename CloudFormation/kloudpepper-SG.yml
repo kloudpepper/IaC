@@ -1,0 +1,126 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "CloudFormation template to create Security Groups"
+
+Parameters:
+  EnvironmentType:
+    Type: String
+
+  EnvironmentName:
+    Type: String
+
+  VpcID:
+    Type: String
+
+  VpcCIDR:
+    Type: String
+
+
+Conditions:
+  isProdEnvironmentType: !Equals [!Ref EnvironmentType, prod]
+
+# 10.0.0.0/16 = On-premises Network. Enter the CIDR or the IPs you want to connect to the balancer
+
+Resources:
+  ALBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: ALB security group
+      GroupName: !Sub ${EnvironmentName}-ALB-SG
+      SecurityGroupIngress:
+      - CidrIp: !If [isProdEnvironmentType, 0.0.0.0/0, 10.0.0.0/16]
+        FromPort: !If [isProdEnvironmentType, 443, 8445]
+        IpProtocol: tcp
+        ToPort: !If [isProdEnvironmentType, 443, 8445]
+        Description: !If [isProdEnvironmentType, public network, on-premises network]
+      VpcId: !Ref VpcID
+      Tags:
+        -
+          Key: Name
+          Value: !Sub ${EnvironmentName}-ALB-SG
+
+  ECSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: ECS security group
+      GroupName: !Sub ${EnvironmentName}-ECS-SG
+      SecurityGroupIngress:
+      - SourceSecurityGroupId: !GetAtt ALBSecurityGroup.GroupId
+        FromPort: 8554
+        IpProtocol: tcp
+        ToPort: 8554
+      VpcId: !Ref VpcID
+      Tags:
+        -
+          Key: Name
+          Value: !Sub ${EnvironmentName}-ECS-SG
+
+  DBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    DependsOn: ECSSecurityGroup
+    Properties:
+      GroupDescription: RDS security group
+      GroupName: !Sub ${EnvironmentName}-DB-SG
+      SecurityGroupIngress:
+      - SourceSecurityGroupId: !GetAtt ECSSecurityGroup.GroupId
+        FromPort: 33066
+        IpProtocol: tcp
+        ToPort: 33066
+      VpcId: !Ref VpcID
+      Tags:
+        -
+          Key: Name
+          Value: !Sub ${EnvironmentName}-DB-SG
+
+  EFSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    DependsOn: ECSSecurityGroup
+    Properties:
+      GroupDescription: EFS security group
+      GroupName: !Sub ${EnvironmentName}-EFS-SG
+      SecurityGroupIngress:
+      - SourceSecurityGroupId: !GetAtt ECSSecurityGroup.GroupId
+        FromPort: 2049
+        IpProtocol: tcp
+        ToPort: 2049
+      VpcId: !Ref VpcID
+      Tags:
+        -
+          Key: Name
+          Value: !Sub ${EnvironmentName}-EFS-SG
+
+  VPCEnpointSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: VPC Endpoints security group
+      GroupName: !Sub ${EnvironmentName}-VPCEndpoint-SG
+      SecurityGroupIngress:
+      - CidrIp: !Ref VpcCIDR
+        FromPort: 443
+        IpProtocol: tcp
+        ToPort: 443
+      VpcId: !Ref VpcID
+      Tags:
+        -
+          Key: Name
+          Value: !Sub ${EnvironmentName}-VPCEndpoint-SG
+
+Outputs:
+  ALBSecurityGroup:
+    Description: ALB security group
+    Value: !GetAtt ALBSecurityGroup.GroupId
+
+  ECSSecurityGroup:
+    Description: ECS security group
+    Value: !GetAtt ECSSecurityGroup.GroupId
+
+  DBSecurityGroup:
+    Description: RDS security group
+    Value: !GetAtt DBSecurityGroup.GroupId
+
+  EFSSecurityGroup:
+    Description: EFS security group
+    Value: !GetAtt EFSSecurityGroup.GroupId
+
+  VPCEnpointSecurityGroup:
+    Description: VPC Endpoints security group
+    Value: !GetAtt VPCEnpointSecurityGroup.GroupId
