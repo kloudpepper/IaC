@@ -92,7 +92,7 @@ Resources:
           Principal:
             Service:
               - ecs-tasks.amazonaws.com
-          Action: 
+          Action:
             - sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess
@@ -114,7 +114,7 @@ Resources:
           Principal:
             Service:
               - ecs-tasks.amazonaws.com
-          Action: 
+          Action:
             - sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
@@ -126,8 +126,6 @@ Resources:
     Type: AWS::ECS::TaskDefinition
     DependsOn:
       - LogGroupApp1
-      - ECSTaskRole
-      - ECSTaskExecutionRole
     Properties:
       Family: !Sub ${EnvironmentName}-TD-App1
       Cpu: !If [isProdEnvironmentType, 2048, 1024]
@@ -148,20 +146,12 @@ Resources:
             - SourceVolume: efs-app1
               ContainerPath: /mnt/app1
           Environment:
-            - Name: MQ_USER
-              Value: !Ref 'MQUser'
-            - Name: MQ_PASSWORD
-              Value: !Ref 'MQPassword'
-            - Name: MQ_URL
-              Value: !Ref 'MQEnpointAddr'
             - Name: DB_USER
               Value: !Ref 'DBUser'
             - Name: DB_PASSWORD
               Value: !Ref 'DBPassword'
             - Name: DB_URL
               Value: !Sub 'jdbc:mysql:aurora//db.${PrivateDomainName}:${RDSEnpointPort}/${EnvironmentName}DB'
-            - Name: S3EXPORT
-              Value: !Sub '${EnvironmentName}-data-export'
           StopTimeout: 30
           Ulimits:
             - Name: 'nofile'
@@ -182,7 +172,7 @@ Resources:
               AccessPointId: !Ref AccessPointIdDataApp1
               IAM: DISABLED
       Tags:
-        - 
+        -
           Key: Environment
           Value: !Ref EnvironmentName
 
@@ -190,8 +180,6 @@ Resources:
     Type: AWS::ECS::TaskDefinition
     DependsOn:
       - LogGroupApp2
-      - ECSTaskRole
-      - ECSTaskExecutionRole
     Properties:
       Family: !Sub ${EnvironmentName}-TD-App2
       Cpu: !If [isProdEnvironmentType, 2048, 1024]
@@ -212,20 +200,12 @@ Resources:
             - SourceVolume: efs-app2
               ContainerPath: /mnt/app2
           Environment:
-            - Name: MQ_USER
-              Value: !Ref 'MQUser'
-            - Name: MQ_PASSWORD
-              Value: !Ref 'MQPassword'
-            - Name: MQ_URL
-              Value: !Ref 'MQEnpointAddr'
             - Name: DB_USER
               Value: !Ref 'DBUser'
             - Name: DB_PASSWORD
               Value: !Ref 'DBPassword'
             - Name: DB_URL
               Value: !Sub 'jdbc:mysql:aurora//db.${PrivateDomainName}:${RDSEnpointPort}/${EnvironmentName}DB'
-            - Name: S3EXPORT
-              Value: !Sub '${EnvironmentName}-data-export'
           StopTimeout: 30
           Ulimits:
             - Name: 'nofile'
@@ -246,7 +226,7 @@ Resources:
               AccessPointId: !Ref AccessPointIdDataApp2
               IAM: DISABLED
       Tags:
-        - 
+        -
           Key: Environment
           Value: !Ref EnvironmentName
 
@@ -254,26 +234,23 @@ Resources:
     Type: AWS::ECS::Cluster
     Properties:
       ClusterName: !Sub ${EnvironmentName}-ECS-cluster
-      ClusterSettings: 
-        - 
+      ClusterSettings:
+        -
           Name: containerInsights
           Value: 'enabled'
-      CapacityProviders: 
+      CapacityProviders:
         - FARGATE_SPOT
         - FARGATE
       Tags:
-        - 
+        -
           Key: Environment
           Value: !Ref EnvironmentName
-        - 
+        -
           Key: Name
           Value: !Sub ${EnvironmentName}-ECS-cluster
 
   ServiceApp1:
     Type: AWS::ECS::Service
-    DependsOn:
-      - TaskDefinitionApp1
-      - ECSCluster
     Properties:
       ServiceName: !Sub "${EnvironmentName}-APP1"
       Cluster: !Ref ECSCluster
@@ -298,18 +275,15 @@ Resources:
           ContainerPort: 8554
           ContainerName: ContainerApp1
       Tags:
-        - 
+        -
           Key: Environment
           Value: !Ref EnvironmentName
-        - 
+        -
           Key: Name
           Value: !Sub ${EnvironmentName}-APP1
 
   ServiceApp2:
     Type: AWS::ECS::Service
-    DependsOn:
-      - TaskDefinitionApp2
-      - ECSCluster
     Properties:
       ServiceName: !Sub "${EnvironmentName}-APP2"
       Cluster: !Ref ECSCluster
@@ -334,9 +308,9 @@ Resources:
           ContainerPort: 8554
           ContainerName: ContainerApp2
       Tags:
-        - 
+        -
           Key: Environment
           Value: !Ref EnvironmentName
-        - 
+        -
           Key: Name
           Value: !Sub ${EnvironmentName}-APP2

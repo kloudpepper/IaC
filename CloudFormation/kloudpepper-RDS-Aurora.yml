@@ -36,7 +36,7 @@ Resources:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
       DBSubnetGroupDescription: Amazon Aurora DB Subnet Groups
-      SubnetIds: 
+      SubnetIds:
         - !Ref DBPrivateSubnet1
         - !Ref DBPrivateSubnet2
 
@@ -109,7 +109,7 @@ Resources:
         -
           Key: Environment
           Value: !Ref EnvironmentName
-        - 
+        -
           Key: Name
           Value: !Sub ${EnvironmentName}-DB-cluster
 
@@ -135,7 +135,7 @@ Resources:
         -
           Key: Environment
           Value: !Ref EnvironmentName
-        - 
+        -
           Key: Name
           Value: !Sub ${EnvironmentName}-DB-Instance1
 
@@ -159,7 +159,7 @@ Resources:
         -
           Key: Environment
           Value: !Ref EnvironmentName
-        - 
+        -
           Key: Name
           Value: !Sub ${EnvironmentName}-DB-Instance2
 

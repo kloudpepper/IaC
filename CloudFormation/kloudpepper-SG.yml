@@ -56,7 +56,6 @@ Resources:
 
   DBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
-    DependsOn: ECSSecurityGroup
     Properties:
       GroupDescription: RDS security group
       GroupName: !Sub ${EnvironmentName}-DB-SG
@@ -73,7 +72,6 @@ Resources:
 
   EFSSecurityGroup:
     Type: AWS::EC2::SecurityGroup
-    DependsOn: ECSSecurityGroup
     Properties:
       GroupDescription: EFS security group
       GroupName: !Sub ${EnvironmentName}-EFS-SG

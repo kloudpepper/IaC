@@ -23,10 +23,10 @@ Resources:
     Type: AWS::EC2::VPCEndpoint
     Properties:
       PrivateDnsEnabled: true
-      SecurityGroupIds: 
+      SecurityGroupIds:
         - !Ref VPCEnpointSecurityGroup
       ServiceName: !Sub "com.amazonaws.${AWS::Region}.monitoring"
-      SubnetIds: 
+      SubnetIds:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
       VpcEndpointType: 'Interface'
@@ -36,10 +36,10 @@ Resources:
     Type: AWS::EC2::VPCEndpoint
     Properties:
       PrivateDnsEnabled: true
-      SecurityGroupIds: 
+      SecurityGroupIds:
         - !Ref VPCEnpointSecurityGroup
       ServiceName: !Sub "com.amazonaws.${AWS::Region}.ecr.api"
-      SubnetIds: 
+      SubnetIds:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
       VpcEndpointType: 'Interface'
@@ -49,10 +49,10 @@ Resources:
     Type: AWS::EC2::VPCEndpoint
     Properties:
       PrivateDnsEnabled: true
-      SecurityGroupIds: 
+      SecurityGroupIds:
         - !Ref VPCEnpointSecurityGroup
       ServiceName: !Sub "com.amazonaws.${AWS::Region}.ecr.dkr"
-      SubnetIds: 
+      SubnetIds:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
       VpcEndpointType: 'Interface'
@@ -62,10 +62,10 @@ Resources:
     Type: AWS::EC2::VPCEndpoint
     Properties:
       PrivateDnsEnabled: true
-      SecurityGroupIds: 
+      SecurityGroupIds:
         - !Ref VPCEnpointSecurityGroup
       ServiceName: !Sub "com.amazonaws.${AWS::Region}.logs"
-      SubnetIds: 
+      SubnetIds:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
       VpcEndpointType: 'Interface'

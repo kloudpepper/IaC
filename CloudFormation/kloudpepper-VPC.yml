@@ -259,11 +259,11 @@ Resources:
         DefaultRouteTablePropagation: "enable"
         DnsSupport: "enable"
         VpnEcmpSupport: "enable"
-        Tags: 
-          - 
+        Tags:
+          -
             Key: "Environment"
             Value: !Sub ${EnvironmentName}
-          - 
+          -
             Key: "Name"
             Value: !Sub ${EnvironmentName}-TGW
 
@@ -274,7 +274,7 @@ Resources:
       SubnetIds:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
-      Tags: 
+      Tags:
         - Key: Name
           Value: !Sub ${EnvironmentName}-Transit-Attachment
       TransitGatewayId: !Ref TransitGateway
@@ -298,7 +298,7 @@ Resources:
       RouteTableId: !Ref PublicRouteTable2
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref InternetGateway
-      
+
 # Create destination route 0.0.0.0/0 to nat gateway (private)
   RouteToNatGateway1:
     Type: AWS::EC2::Route
@@ -340,8 +340,8 @@ Resources:
 #            BgpAsn: 65000
 #            IpAddress: "61.92.0.150" # not real Public IP
 #            Type: "ipsec.1"
-#            Tags: 
-#              - 
+#            Tags:
+#              -
 #                Key: "Name"
 #                Value: "CGW-XXX"
 
@@ -350,8 +350,8 @@ Resources:
 #        Properties:
 #            AmazonSideAsn: 64515
 #            Type: "ipsec.1"
-#            Tags: 
-#              - 
+#            Tags:
+#              -
 #                Key: "Name"
 #                Value: "VGW-XXX"
 
@@ -362,8 +362,8 @@ Resources:
 #            StaticRoutesOnly: false
 #            CustomerGatewayId: !Ref CustomerGateway
 #            VpnGatewayId: !Ref VPNGateway
-#            Tags: 
-#              - 
+#            Tags:
+#              -
 #                Key: "Name"
 #                Value: "VPN-XXX"
 
@@ -376,7 +376,7 @@ Outputs:
       Name: !Sub ${EnvironmentName}-VPCID
 
   PublicSubnet1:
-    Description: Public Subnet 1 
+    Description: Public Subnet 1
     Value: !Ref PublicSubnet1
 
   PublicSubnet2:
@@ -384,7 +384,7 @@ Outputs:
     Value: !Ref PublicSubnet2
 
   PrivateSubnet1:
-    Description: Private Subnet 1 
+    Description: Private Subnet 1
     Value: !Ref PrivateSubnet1
 
   PrivateSubnet2:
@@ -392,7 +392,7 @@ Outputs:
     Value: !Ref PrivateSubnet2
 
   DBPrivateSubnet1:
-    Description: DB Private Subnet 1 
+    Description: DB Private Subnet 1
     Value: !Ref DBPrivateSubnet1
 
   DBPrivateSubnet2:

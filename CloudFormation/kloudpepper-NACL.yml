@@ -13,7 +13,7 @@ Parameters:
 
   VpcCIDR:
     Type: String
-  
+
   PublicSubnet1CIDR:
     Type: String
 
@@ -22,7 +22,7 @@ Parameters:
 
   PrivateSubnet1CIDR:
     Type: String
-  
+
   PrivateSubnet2CIDR:
     Type: String
 
@@ -64,7 +64,6 @@ Resources:
 # Acl association to public subnet 1
   PublicSubnet1NetworkAclAssociation:
     Type: AWS::EC2::SubnetNetworkAclAssociation
-    DependsOn: PublicNetworkACL
     Properties:
       SubnetId: !Ref PublicSubnet1
       NetworkAclId: !Ref PublicNetworkACL
@@ -72,7 +71,6 @@ Resources:
 # Acl association to public subnet 2
   PublicSubnet2NetworkAclAssociation:
     Type: AWS::EC2::SubnetNetworkAclAssociation
-    DependsOn: PublicNetworkACL
     Properties:
       SubnetId: !Ref PublicSubnet2
       NetworkAclId: !Ref PublicNetworkACL
@@ -90,7 +88,6 @@ Resources:
 # Acl association to private subnet 1
   PrivateSubnet1NetworkAclAssociation:
     Type: AWS::EC2::SubnetNetworkAclAssociation
-    DependsOn: PrivateNetworkACL
     Properties:
       SubnetId: !Ref PrivateSubnet1
       NetworkAclId: !Ref PrivateNetworkACL
@@ -98,7 +95,6 @@ Resources:
 # Acl association to private subnet 2
   PrivateSubnet2NetworkAclAssociation:
     Type: AWS::EC2::SubnetNetworkAclAssociation
-    DependsOn: PrivateNetworkACL
     Properties:
       SubnetId: !Ref PrivateSubnet2
       NetworkAclId: !Ref PrivateNetworkACL
@@ -116,7 +112,6 @@ Resources:
 # Acl association to DB private subnet 1
   DBPrivateSubnet1NetworkAclAssociation:
     Type: AWS::EC2::SubnetNetworkAclAssociation
-    DependsOn: DBPrivateNetworkACL
     Properties:
       SubnetId: !Ref DBPrivateSubnet1
       NetworkAclId: !Ref DBPrivateNetworkACL
@@ -124,7 +119,6 @@ Resources:
 # Acl association to DB private subnet 2
   DBPrivateSubnet2NetworkAclAssociation:
     Type: AWS::EC2::SubnetNetworkAclAssociation
-    DependsOn: DBPrivateNetworkACL
     Properties:
       SubnetId: !Ref DBPrivateSubnet2
       NetworkAclId: !Ref DBPrivateNetworkACL
