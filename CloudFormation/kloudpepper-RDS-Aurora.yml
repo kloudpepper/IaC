@@ -71,10 +71,6 @@ Resources:
 
   AuroraDBCluster:
     Type: AWS::RDS::DBCluster
-    DependsOn:
-      - RDSlogin
-      - RDSsubnetgroup
-      - DBClusterParameterGroup
     DeletionPolicy: Delete
     #DeletionPolicy: Retain
     #DeletionPolicy: Snapshot

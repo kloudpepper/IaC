@@ -70,6 +70,16 @@ Parameters:
     AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
     ConstraintDescription: Please insert a valid range
 
+  CreateALBCertificate:
+    Type: String
+    Default: NO
+    AllowedValues:
+      - YES
+      - NO
+
+  OtherARNCertificate:
+    Type: String
+
   DesiredCount:
     Description: "Insert the number of desired tasks to be executed in each service"
     Type: Number
@@ -78,6 +88,7 @@ Parameters:
   ImageUrlApp:
     Description: "Insert the url of the App container image"
     Type: String
+
 
 Mappings:
   Aurora:
@@ -108,10 +119,21 @@ Metadata:
           - DBPrivateSubnet2CIDR
       -
         Label:
+          default: "ALB CERTIFICATE"
+        Parameters:
+          - CreateALBCertificate
+          - OtherARNCertificate
+      -
+        Label:
           default: "ECS PARAMETERS"
         Parameters:
           - DesiredCount
           - ImageUrlApp
+    ParameterLabels:
+      CreateALBCertificate:
+        default: "If you want to create a new certificate, select YES; otherwise, select NO and insert the certificate's ARN in the OtherARNCertificate option"
+      OtherARNCertificate:
+        default: "Please insert your certificate's ARN uploaded to ACM previously"
 
 # Nested Stacks
 Resources:
@@ -201,6 +223,8 @@ Resources:
         PrivateSubnet1: !GetAtt VPCStack.Outputs.PrivateSubnet1
         PrivateSubnet2: !GetAtt VPCStack.Outputs.PrivateSubnet2
         ALBSecurityGroup: !GetAtt SGStack.Outputs.ALBSecurityGroup
+        CreateALBCertificate: !Ref CreateALBCertificate
+        OtherARNCertificate: !Ref OtherARNCertificate
 
   RDSStack:
     Type: AWS::CloudFormation::Stack

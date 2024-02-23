@@ -11,9 +11,6 @@ Parameters:
   VpcID:
     Type: String
 
-  VpcCIDR:
-    Type: String
-
   PublicSubnet1CIDR:
     Type: String
 

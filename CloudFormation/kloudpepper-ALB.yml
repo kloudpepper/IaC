@@ -38,7 +38,7 @@ Parameters:
 
 Conditions:
   isProdEnvironmentType: !Equals [!Ref EnvironmentType, prod]
-  isTrueCreateCertificate: !Equals [!Ref CreateALBCertificate, TRUE]
+  isTrueCreateCertificate: !Equals [!Ref CreateALBCertificate, YES]
 
 
 Resources:
@@ -51,9 +51,9 @@ Resources:
       KeyAlgorithm: RSA_2048
       SigningAlgorithm: SHA256WITHRSA
       Subject:
-        Country: EC       # Change to your country
-        State: Pichincha  # Change to your state
-        Locality: Quito   # Change to your locality
+        Country: ES       # Change to your country
+        State: Madrid     # Change to your state
+        Locality: Madrid  # Change to your locality
         Organization: !Sub ${EnvironmentName}
         OrganizationalUnit: !Sub ${EnvironmentName}
         CommonName: Root CA
@@ -213,7 +213,7 @@ Resources:
       LoadBalancerArn: !Ref ApplicationLoadBalancer
       Port: !If [isProdEnvironmentType, 443, 8445]
       Protocol: "HTTPS"
-      SslPolicy: "ELBSecurityPolicy-FS-1-2-Res-2020-10"
+      SslPolicy: "ELBSecurityPolicy-TLS13-1-2-2021-06"
       Certificates:
         - CertificateArn: !If [isTrueCreateCertificate, !Ref ACMInternalCertificate, !Ref OtherARNCertificate]
       DefaultActions:

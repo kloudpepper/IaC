@@ -11,9 +11,6 @@ Parameters:
   PrivateSubnet2:
     Type: String
 
-  PrivateRouteTable:
-    Type: String
-
   VPCEnpointSecurityGroup:
     Type: String
 

@@ -29,15 +29,6 @@ Parameters:
   ImageUrlApp2:
     Type: String
 
-  MQUser:
-    Type: String
-
-  MQPassword:
-    Type: String
-
-  MQEnpointAddr:
-    Type: String
-
   DBUser:
     Type: String
 
