@@ -35,31 +35,27 @@ Resources:
         - TransitionToPrimaryStorageClass: AFTER_1_ACCESS
       ThroughputMode: bursting
       FileSystemTags:
-        - 
+        -
           Key: Environment
           Value: !Ref EnvironmentName
-        - 
+        -
           Key: Name
           Value: !Sub ${EnvironmentName}-EFS
 
   EFSmounttarget1:
     Type: AWS::EFS::MountTarget
-    DependsOn:
-      - EFS
     Properties:
       FileSystemId: !Ref EFS
       SubnetId: !Ref PrivateSubnet1
-      SecurityGroups: 
+      SecurityGroups:
         - !Ref EFSSecurityGroup
-  
+
   EFSmounttarget2:
     Type: AWS::EFS::MountTarget
-    DependsOn:
-      - EFS
     Properties:
       FileSystemId: !Ref EFS
       SubnetId: !Ref PrivateSubnet2
-      SecurityGroups: 
+      SecurityGroups:
         - !Ref EFSSecurityGroup
 
   FSDataApp1Accesspoint:
@@ -78,7 +74,7 @@ Resources:
           OwnerGid: '1414'
           OwnerUid: '1414'
           Permissions: '0644'
-  
+
   FSDataApp2Accesspoint:
     Type: AWS::EFS::AccessPoint
     DependsOn:
