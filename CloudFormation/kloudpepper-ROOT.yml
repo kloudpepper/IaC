@@ -79,7 +79,7 @@ Parameters:
     Description: "Insert the url of the App container image"
     Type: String
 
-Mappings: 
+Mappings:
   Aurora:
     InstanceTypes:
       prod: "db.t2.medium"    # 2 vCPUs + 4 GB
@@ -89,13 +89,13 @@ Mappings:
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
-      - 
-        Label: 
+      -
+        Label:
           default: "ENVIRONMENT PARAMETERS"
         Parameters:
           - EnvironmentType
           - EnvironmentName
-      - 
+      -
         Label:
           default: "NETWORK PARAMETERS"
         Parameters:
@@ -107,7 +107,7 @@ Metadata:
           - DBPrivateSubnet1CIDR
           - DBPrivateSubnet2CIDR
       -
-        Label: 
+        Label:
           default: "ECS PARAMETERS"
         Parameters:
           - DesiredCount
