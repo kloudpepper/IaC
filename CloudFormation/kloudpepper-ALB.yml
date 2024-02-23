@@ -38,7 +38,7 @@ Parameters:
 
 Conditions:
   isProdEnvironmentType: !Equals [!Ref EnvironmentType, prod]
-  isTrueCreateCertificate: !Equals [!Ref CreateALBCertificate, YES]
+  isTrueCreateCertificate: !Equals [!Ref CreateALBCertificate, TRUE]
 
 
 Resources:

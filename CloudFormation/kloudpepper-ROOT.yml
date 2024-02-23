@@ -72,10 +72,10 @@ Parameters:
 
   CreateALBCertificate:
     Type: String
-    Default: NO
+    Default: FALSE
     AllowedValues:
-      - YES
-      - NO
+      - TRUE
+      - FALSE
 
   OtherARNCertificate:
     Type: String
@@ -131,7 +131,7 @@ Metadata:
           - ImageUrlApp
     ParameterLabels:
       CreateALBCertificate:
-        default: "If you want to create a new certificate, select YES; otherwise, select NO and insert the certificate's ARN in the OtherARNCertificate option"
+        default: "If you want to create a new certificate, select TRUE; otherwise, select FALSE and insert the certificate's ARN in the OtherARNCertificate option"
       OtherARNCertificate:
         default: "Please insert your certificate's ARN uploaded to ACM previously"
 
@@ -161,7 +161,6 @@ Resources:
         EnvironmentType: !Ref EnvironmentType
         EnvironmentName: !Ref EnvironmentName
         VpcID: !GetAtt VPCStack.Outputs.VPC
-        VpcCIDR: !Ref VpcCIDR
         PublicSubnet1CIDR: !Ref PublicSubnet1CIDR
         PublicSubnet2CIDR: !Ref PublicSubnet2CIDR
         PrivateSubnet1CIDR: !Ref PrivateSubnet1CIDR
