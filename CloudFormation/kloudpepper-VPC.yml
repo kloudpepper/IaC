@@ -2,6 +2,9 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: "CloudFormation template to create a VPC, subnets, and route table"
 
 Parameters:
+  EnvironmentType:
+    Type: String
+
   EnvironmentName:
     Type: String
 
@@ -25,6 +28,11 @@ Parameters:
 
   DBPrivateSubnet2CIDR:
     Type: String
+
+
+Conditions:
+  isProdEnvironmentType: !Equals [!Ref EnvironmentType, prod]
+
 
 Resources:
 # Create VPC
@@ -233,6 +241,7 @@ Resources:
 
 # Create NAT Gateway 2:
   ElasticIPAddress2:
+    Condition: isProdEnvironmentType
     Type: AWS::EC2::EIP
     DependsOn: AttachInternetGateway
     Properties:
@@ -240,6 +249,7 @@ Resources:
 
   NATGateway2:
     Type: AWS::EC2::NatGateway
+    Condition: isProdEnvironmentType
     Properties:
       AllocationId: !GetAtt ElasticIPAddress2.AllocationId
       SubnetId: !Ref PublicSubnet2
@@ -250,7 +260,7 @@ Resources:
 # Create Transit Gateway
   TransitGateway:
     Type: AWS::EC2::TransitGateway
-    DependsOn: VPC  # isn't necessary, but I like to have an order
+    DependsOn: VPC  # It's not necessary, but I like to have an order
     Properties:
         Description: "Transit Gateway"
         AmazonSideAsn: 64512
@@ -308,13 +318,14 @@ Resources:
       NatGatewayId: !Ref NATGateway1
 
   RouteToNatGateway2:
+    Condition: isProdEnvironmentType
     Type: AWS::EC2::Route
     Properties:
       RouteTableId: !Ref PrivateRouteTable2
       DestinationCidrBlock: 0.0.0.0/0
       NatGatewayId: !Ref NATGateway2
 
-# Create destination route 10.10.0.0/16 to transit gateway (to on-premise)
+# Create destination route 10.10.0.0/16 to transit gateway (Example: to on-premise)
   RouteToTransitGateway1:
     Type: AWS::EC2::Route
     DependsOn:

@@ -80,6 +80,9 @@ Parameters:
   OtherARNCertificate:
     Type: String
 
+  PrivateDomainName:
+    Type: String
+
   DesiredCount:
     Description: "Insert the number of desired tasks to be executed in each service"
     Type: Number
@@ -123,6 +126,7 @@ Metadata:
         Parameters:
           - CreateALBCertificate
           - OtherARNCertificate
+          - PrivateDomainName
       -
         Label:
           default: "ECS PARAMETERS"
@@ -132,8 +136,15 @@ Metadata:
     ParameterLabels:
       CreateALBCertificate:
         default: "If you want to create a new certificate, select TRUE; otherwise, select FALSE and insert the certificate's ARN in the OtherARNCertificate option"
+      PrivateDomainName:
+        default: "Please insert your private domain. Example: example.com"
       OtherARNCertificate:
         default: "Please insert your certificate's ARN uploaded to ACM previously"
+
+
+Conditions:
+  isTrueCreateCertificate: !Equals [!Ref CreateALBCertificate, TRUE]
+
 
 # Nested Stacks
 Resources:
@@ -143,6 +154,7 @@ Resources:
       TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-VPC.yml
       TimeoutInMinutes: 5
       Parameters:
+        EnvironmentType: !Ref EnvironmentType
         EnvironmentName: !Ref EnvironmentName
         VpcCIDR: !Ref VpcCIDR
         PublicSubnet1CIDR: !Ref PublicSubnet1CIDR
@@ -158,7 +170,6 @@ Resources:
       TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-NACL.yml
       TimeoutInMinutes: 5
       Parameters:
-        EnvironmentType: !Ref EnvironmentType
         EnvironmentName: !Ref EnvironmentName
         VpcID: !GetAtt VPCStack.Outputs.VPC
         PublicSubnet1CIDR: !Ref PublicSubnet1CIDR
@@ -179,7 +190,6 @@ Resources:
       TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-SG.yml
       TimeoutInMinutes: 5
       Parameters:
-        EnvironmentType: !Ref EnvironmentType
         EnvironmentName: !Ref EnvironmentName
         VpcID: !GetAtt VPCStack.Outputs.VPC
         VpcCIDR: !Ref VpcCIDR
@@ -188,7 +198,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-VPCEndpoints.yml
-      TimeoutInMinutes: 30
+      TimeoutInMinutes: 10
       Parameters:
         VpcID: !GetAtt VPCStack.Outputs.VPC
         PrivateSubnet1: !GetAtt VPCStack.Outputs.PrivateSubnet1
@@ -208,6 +218,16 @@ Resources:
         PrivateSubnet2: !GetAtt VPCStack.Outputs.PrivateSubnet2
         EFSSecurityGroup: !GetAtt SGStack.Outputs.EFSSecurityGroup
 
+  PCAStack:
+    Type: AWS::CloudFormation::Stack
+    Condition: isTrueCreateCertificate
+    Properties:
+      TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-PCA.yml
+      TimeoutInMinutes: 5
+      Parameters:
+        EnvironmentName: !Ref EnvironmentName
+        PrivateDomainName: !Ref PrivateDomainName
+
   ALBStack:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -217,12 +237,11 @@ Resources:
         EnvironmentType: !Ref EnvironmentType
         EnvironmentName: !Ref EnvironmentName
         VpcID: !GetAtt VPCStack.Outputs.VPC
-        PublicSubnet1: !GetAtt VPCStack.Outputs.PublicSubnet1
-        PublicSubnet2: !GetAtt VPCStack.Outputs.PublicSubnet2
         PrivateSubnet1: !GetAtt VPCStack.Outputs.PrivateSubnet1
         PrivateSubnet2: !GetAtt VPCStack.Outputs.PrivateSubnet2
         ALBSecurityGroup: !GetAtt SGStack.Outputs.ALBSecurityGroup
         CreateALBCertificate: !Ref CreateALBCertificate
+        ACMInternalCertificate: !GetAtt PCAStack.Outputs.ACMInternalCertificate
         OtherARNCertificate: !Ref OtherARNCertificate
 
   RDSStack:
@@ -231,7 +250,7 @@ Resources:
       - VPCEndpointStack
     Properties:
       TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-RDS-Aurora.yml
-      TimeoutInMinutes: 60
+      TimeoutInMinutes: 30
       Parameters:
         EnvironmentType: !Ref EnvironmentType
         EnvironmentName: !Ref EnvironmentName
@@ -239,6 +258,19 @@ Resources:
         DBPrivateSubnet2: !GetAtt VPCStack.Outputs.DBPrivateSubnet2
         DBSecurityGroup: !GetAtt SGStack.Outputs.DBSecurityGroup
         DBType: !FindInMap [Aurora, InstanceTypes, !Ref EnvironmentType]
+
+  Route53Stack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-Route53.yml
+      TimeoutInMinutes: 5
+      Parameters:
+        EnvironmentName: !Ref EnvironmentName
+        VpcID: !GetAtt VPCStack.Outputs.VPC
+        AlbCanonicalHostedZoneID: !GetAtt ALBStack.Outputs.AlbCanonicalHostedZoneID
+        AlbDNSName: !GetAtt ALBStack.Outputs.AlbDNSName
+        PrivateDomainName: !Ref PrivateDomainName
+        RDSEnpointAddr: !GetAtt RDSStack.Outputs.RDSEnpointAddr
 
   ECSStack:
     Type: AWS::CloudFormation::Stack
@@ -257,3 +289,4 @@ Resources:
         TargetGroupAPP: !GetAtt ALBStack.Outputs.TargetGroupAPP
         FileSystemId: !GetAtt EFSStack.Outputs.FileSystemId
         AccessPointIdDataApp: !GetAtt EFSStack.Outputs.AccessPointIdDataApp
+        PrivateDomainName: !Ref PrivateDomainName

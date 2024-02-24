@@ -119,8 +119,8 @@ Resources:
       - LogGroupApp1
     Properties:
       Family: !Sub ${EnvironmentName}-TD-App1
-      Cpu: !If [isProdEnvironmentType, 2048, 1024]
-      Memory: !If [isProdEnvironmentType, 16384, 8192]
+      Cpu: !If [isProdEnvironmentType, 1024, 512]
+      Memory: !If [isProdEnvironmentType, 4096, 2048]
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
@@ -128,8 +128,8 @@ Resources:
       TaskRoleArn: !Ref ECSTaskRole
       ContainerDefinitions:
         - Name: ContainerApp1
-          Cpu: !If [isProdEnvironmentType, 2048, 1024]
-          MemoryReservation: !If [isProdEnvironmentType, 16384, 8192]
+          Cpu: !If [isProdEnvironmentType, 1024, 512]
+          MemoryReservation: !If [isProdEnvironmentType, 4096, 2048]
           Image: !Ref ImageUrlApp1
           PortMappings:
             - ContainerPort: 8554
@@ -173,8 +173,8 @@ Resources:
       - LogGroupApp2
     Properties:
       Family: !Sub ${EnvironmentName}-TD-App2
-      Cpu: !If [isProdEnvironmentType, 2048, 1024]
-      Memory: !If [isProdEnvironmentType, 16384, 8192]
+      Cpu: !If [isProdEnvironmentType, 1024, 512]
+      Memory: !If [isProdEnvironmentType, 4096, 2048]
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
@@ -182,8 +182,8 @@ Resources:
       TaskRoleArn: !Ref ECSTaskRole
       ContainerDefinitions:
         - Name: ContainerApp2
-          Cpu: !If [isProdEnvironmentType, 2048, 1024]
-          MemoryReservation: !If [isProdEnvironmentType, 16384, 8192]
+          Cpu: !If [isProdEnvironmentType, 1024, 512]
+          MemoryReservation: !If [isProdEnvironmentType, 4096, 2048]
           Image: !Ref ImageUrlApp2
           PortMappings:
             - ContainerPort: 8554

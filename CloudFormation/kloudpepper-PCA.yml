@@ -1,0 +1,63 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "CloudFormation template to create a Private Certificate"
+
+Parameters:
+  EnvironmentName:
+    Type: String
+
+  PrivateDomainName:
+    Type: String
+
+
+Resources:
+# Create an internal certificate for ALB (only if a condition is true)
+  InternalRootCA:
+    Type: AWS::ACMPCA::CertificateAuthority
+    Properties:
+      Type: ROOT
+      KeyAlgorithm: RSA_2048
+      SigningAlgorithm: SHA256WITHRSA
+      Subject:
+        Country: ES       # Change to your country
+        State: Madrid     # Change to your state
+        Locality: Madrid  # Change to your locality
+        Organization: !Sub ${EnvironmentName}
+        OrganizationalUnit: !Sub ${EnvironmentName}
+        CommonName: Root CA
+        SerialNumber: '1234567890' # Insert valid serial number
+      RevocationConfiguration:
+        CrlConfiguration:
+          Enabled: false
+
+  InternalRootCACertificate:
+    Type: AWS::ACMPCA::Certificate
+    Properties:
+      CertificateAuthorityArn: !Ref InternalRootCA
+      CertificateSigningRequest: !GetAtt InternalRootCA.CertificateSigningRequest
+      SigningAlgorithm: SHA256WITHRSA
+      TemplateArn: 'arn:aws:acm-pca:::template/RootCACertificate/V1'
+      Validity:
+        Type: YEARS
+        Value: 5
+
+  InternalRootCAActivation:
+    Type: AWS::ACMPCA::CertificateAuthorityActivation
+    Properties:
+      CertificateAuthorityArn: !Ref InternalRootCA
+      Certificate: !GetAtt InternalRootCACertificate.Certificate
+      Status: ACTIVE
+
+  ACMInternalCertificate:
+    Type: AWS::CertificateManager::Certificate
+    DependsOn: InternalRootCAActivation
+    Properties:
+      CertificateAuthorityArn: !Ref InternalRootCA
+      DomainName: !Ref PrivateDomainName
+      SubjectAlternativeNames:
+        - !Sub "*.${PrivateDomainName}"
+
+
+Outputs:
+  ACMInternalCertificate:
+    Description: Export certificate's ARN
+    Value: !Ref ACMInternalCertificate

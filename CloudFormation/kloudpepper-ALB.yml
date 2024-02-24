@@ -2,9 +2,6 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: "CloudFormation template to create ALB"
 
 Parameters:
-  PrivateDomainName:
-    Type: String
-
   EnvironmentType:
     Type: String
 
@@ -12,12 +9,6 @@ Parameters:
     Type: String
 
   VpcID:
-    Type: String
-
-  PublicSubnet1:
-    Type: String
-
-  PublicSubnet2:
     Type: String
 
   PrivateSubnet1:
@@ -32,6 +23,9 @@ Parameters:
   CreateALBCertificate:
     Type: String
 
+  ACMInternalCertificate:
+    Type: String
+
   OtherARNCertificate:
     Type: String
 
@@ -40,58 +34,7 @@ Conditions:
   isProdEnvironmentType: !Equals [!Ref EnvironmentType, prod]
   isTrueCreateCertificate: !Equals [!Ref CreateALBCertificate, TRUE]
 
-
 Resources:
-# Create an internal certificate for ALB (only if a condition is true)
-  InternalRootCA:
-    Type: AWS::ACMPCA::CertificateAuthority
-    Condition: isTrueCreateCertificate
-    Properties:
-      Type: ROOT
-      KeyAlgorithm: RSA_2048
-      SigningAlgorithm: SHA256WITHRSA
-      Subject:
-        Country: ES       # Change to your country
-        State: Madrid     # Change to your state
-        Locality: Madrid  # Change to your locality
-        Organization: !Sub ${EnvironmentName}
-        OrganizationalUnit: !Sub ${EnvironmentName}
-        CommonName: Root CA
-        SerialNumber: '1234567890' # Insert valid serial number
-      RevocationConfiguration:
-        CrlConfiguration:
-          Enabled: false
-
-  InternalRootCACertificate:
-    Type: AWS::ACMPCA::Certificate
-    Condition: isTrueCreateCertificate
-    Properties:
-      CertificateAuthorityArn: !Ref InternalRootCA
-      CertificateSigningRequest: !GetAtt InternalRootCA.CertificateSigningRequest
-      SigningAlgorithm: SHA256WITHRSA
-      TemplateArn: 'arn:aws:acm-pca:::template/RootCACertificate/V1'
-      Validity:
-        Type: YEARS
-        Value: 5
-
-  InternalRootCAActivation:
-    Type: AWS::ACMPCA::CertificateAuthorityActivation
-    Condition: isTrueCreateCertificate
-    Properties:
-      CertificateAuthorityArn: !Ref InternalRootCA
-      Certificate: !GetAtt InternalRootCACertificate.Certificate
-      Status: ACTIVE
-
-  ACMInternalCertificate:
-    Type: AWS::CertificateManager::Certificate
-    Condition: isTrueCreateCertificate
-    DependsOn: InternalRootCAActivation
-    Properties:
-      CertificateAuthorityArn: !Ref InternalRootCA
-      DomainName: !Ref PrivateDomainName
-      SubjectAlternativeNames:
-        - !Sub "*.${PrivateDomainName}"
-
 # Create target groups of containers: App1, App2
   TargetGroupAPP1:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
@@ -174,11 +117,11 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
       Name: !Sub ${EnvironmentName}-ALB
-      Scheme: !If [isProdEnvironmentType, "internet-facing", "internal"]
+      Scheme: "internal"
       Type: "application"
       Subnets:
-        - !If [isProdEnvironmentType, !Ref PublicSubnet1, !Ref PrivateSubnet1]
-        - !If [isProdEnvironmentType, !Ref PublicSubnet2, !Ref PrivateSubnet2]
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
       SecurityGroups:
         - !Ref ALBSecurityGroup
       IpAddressType: "ipv4"
@@ -211,7 +154,7 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
       LoadBalancerArn: !Ref ApplicationLoadBalancer
-      Port: !If [isProdEnvironmentType, 443, 8445]
+      Port: 443
       Protocol: "HTTPS"
       SslPolicy: "ELBSecurityPolicy-TLS13-1-2-2021-06"
       Certificates:

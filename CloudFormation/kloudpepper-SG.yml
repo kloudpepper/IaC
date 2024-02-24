@@ -2,9 +2,6 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: "CloudFormation template to create Security Groups"
 
 Parameters:
-  EnvironmentType:
-    Type: String
-
   EnvironmentName:
     Type: String
 
@@ -15,11 +12,6 @@ Parameters:
     Type: String
 
 
-Conditions:
-  isProdEnvironmentType: !Equals [!Ref EnvironmentType, prod]
-
-# 10.0.0.0/16 = On-premises Network. Enter the CIDR or the IPs you want to connect to the balancer
-
 Resources:
   ALBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -27,11 +19,11 @@ Resources:
       GroupDescription: ALB security group
       GroupName: !Sub ${EnvironmentName}-ALB-SG
       SecurityGroupIngress:
-      - CidrIp: !If [isProdEnvironmentType, 0.0.0.0/0, 10.0.0.0/16]
-        FromPort: !If [isProdEnvironmentType, 443, 8445]
+      - CidrIp: 0.0.0.0/0
+        FromPort: 443
         IpProtocol: tcp
-        ToPort: !If [isProdEnvironmentType, 443, 8445]
-        Description: !If [isProdEnvironmentType, public network, on-premises network]
+        ToPort: 443
+        Description: !Sub ${EnvironmentName}-ALB-SG
       VpcId: !Ref VpcID
       Tags:
         -

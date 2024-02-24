@@ -1,0 +1,58 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Plantilla para actualizar la zona corebancario-diners.com en Route53"
+
+Parameters:
+  EnvironmentName:
+    Type: String
+
+  VpcID:
+    Type: String
+
+  AlbCanonicalHostedZoneID:
+    Type: String
+
+  AlbDNSName:
+    Type: String
+
+  PrivateDomainName:
+    Type: String
+
+  RDSEnpointAddr:
+    Type: String
+
+Resources:
+  HostedZone:
+    Type: AWS::Route53::HostedZone
+    Properties:
+      HostedZoneConfig:
+          Comment: !Sub "My hosted zone for ${PrivateDomainName}"
+      Name: !Ref PrivateDomainName
+      VPCs:
+        -
+          VPCId: !Ref 'VpcID'
+          VPCRegion: !Ref 'AWS::Region'
+      HostedZoneTags:
+        -
+          Key: Environment
+          Value: !Ref EnvironmentName
+        -
+          Key: Name
+          Value: !Ref PrivateDomainName
+
+  RecordSetALB:
+    Type: AWS::Route53::RecordSetGroup
+    Properties:
+      HostedZoneId: !GetAtt HostedZone.Id
+      Comment: Load Balancer alias
+      RecordSets:
+        - Name: !Sub '${EnvironmentName}.corebancario-diners.com.'
+          Type: A
+          AliasTarget:
+            HostedZoneId: !Ref AlbCanonicalHostedZoneID
+            DNSName: !Ref AlbDNSName
+            EvaluateTargetHealth: 'true'
+        - Name: !Sub 'db.${PrivateDomainName}.'
+          Type: CNAME
+          TTL: '60'
+          ResourceRecords:
+            - !Ref RDSEnpointAddr

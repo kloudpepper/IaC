@@ -20,16 +20,10 @@ Parameters:
   DBType:
     Type: String
 
-  CreateNewAuroraDB:
-    Type: String
-
-  DBSnapshotARN:
-    Type: String
-
 
 Conditions:
   isProdEnvironmentType: !Equals [!Ref EnvironmentType, prod]
-  isTrueCreateNewAuroraDB: !Equals [!Ref CreateNewAuroraDB, TRUE]
+
 
 Resources:
   RDSsubnetgroup:
@@ -45,9 +39,9 @@ Resources:
     #DeletionPolicy: Retain
     Properties:
       Description: "DB Cluster Parameter Group"
-      Family: aurora-mysql5.7
+      Family: aurora-mysql8.0
       Parameters: # https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/AuroraMySQL.Reference.html#AuroraMySQL.Reference.Parameters.Cluster #
-        time_zone: America/Bogota
+        time_zone: Europe/Madrid
         character_set_client: utf8
         character_set_connection: utf8
         character_set_database: utf8
@@ -62,7 +56,7 @@ Resources:
     Type: AWS::RDS::DBParameterGroup
     Properties:
       Description: "DB Parameter Group"
-      Family: aurora-mysql5.7
+      Family: aurora-mysql8.0
       Parameters:
         slow_query_log: '1'
         long_query_time: '10'
@@ -77,17 +71,16 @@ Resources:
     #UpdateReplacePolicy: Snapshot
     Properties:
       DBClusterIdentifier: !Sub "${EnvironmentName}-DB-Cluster"
-      DatabaseName: !If [isTrueCreateNewAuroraDB, !Sub "${EnvironmentName}DB", !Ref AWS::NoValue]
+      DatabaseName: !Sub "${EnvironmentName}DB"
       DBClusterParameterGroupName: !Ref DBClusterParameterGroup
-      SnapshotIdentifier: !If [isTrueCreateNewAuroraDB, !Ref AWS::NoValue, !Ref DBSnapshotARN]
-      StorageEncrypted: !If [isTrueCreateNewAuroraDB, !If [isProdEnvironmentType, true, false], !Ref AWS::NoValue]
+      StorageEncrypted: !If [isProdEnvironmentType, true, false]
       VpcSecurityGroupIds:
         - !Ref DBSecurityGroup
       DBSubnetGroupName: !Ref RDSsubnetgroup
       BackupRetentionPeriod: 30
       Engine: aurora-mysql
       EngineMode: provisioned
-      EngineVersion: '5.7.mysql_aurora.2.10.2'
+      EngineVersion: '8.0.mysql_aurora.3.04.1'
       DeletionProtection: !If [isProdEnvironmentType, true, false]
       EnableCloudwatchLogsExports:
         - audit
@@ -98,9 +91,9 @@ Resources:
       PreferredBackupWindow: '00:30-01:30'
       PreferredMaintenanceWindow: 'sun:22:30-sun:23:30'
       MasterUsername:
-        !If [isTrueCreateNewAuroraDB, !Sub '{{resolve:secretsmanager:${RDSlogin}::username}}', !Ref AWS::NoValue]
+        !Sub '{{resolve:secretsmanager:${RDSlogin}::username}}'
       MasterUserPassword:
-        !If [isTrueCreateNewAuroraDB, !Sub '{{resolve:secretsmanager:${RDSlogin}::password}}', !Ref AWS::NoValue]
+        !Sub '{{resolve:secretsmanager:${RDSlogin}::password}}'
       Tags:
         -
           Key: Environment
@@ -118,7 +111,6 @@ Resources:
       DBInstanceIdentifier: !Sub ${EnvironmentName}-DB-Instance1
       AllowMajorVersionUpgrade: false
       AutoMinorVersionUpgrade: true
-      CopyTagsToSnapshot: true
       DBClusterIdentifier: !Ref AuroraDBCluster
       DBInstanceClass: !Ref DBType
       DBParameterGroupName: !Ref DBParameterGroup
@@ -142,7 +134,6 @@ Resources:
       DBInstanceIdentifier: !Sub ${EnvironmentName}-DB-Instance2
       AllowMajorVersionUpgrade: false
       AutoMinorVersionUpgrade: true
-      CopyTagsToSnapshot: true
       DBClusterIdentifier: !Ref AuroraDBCluster
       DBInstanceClass: !Ref DBType
       DBParameterGroupName: !Ref DBParameterGroup
@@ -161,7 +152,6 @@ Resources:
 
   RDSlogin:
     Type: AWS::SecretsManager::Secret
-    Condition: isTrueCreateNewAuroraDB
     Properties:
       Name: !Sub ${EnvironmentName}-RDSlogin
       Description: Login generado por Secrets Manager
@@ -175,7 +165,6 @@ Resources:
 
   SecretRDSInstanceAttachment:
     Type: AWS::SecretsManager::SecretTargetAttachment
-    Condition: isTrueCreateNewAuroraDB
     Properties:
       SecretId: !Ref RDSlogin
       TargetId: !Ref AuroraDBCluster
