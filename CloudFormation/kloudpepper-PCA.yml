@@ -10,7 +10,6 @@ Parameters:
 
 
 Resources:
-# Create an internal certificate for ALB (only if a condition is true)
   InternalRootCA:
     Type: AWS::ACMPCA::CertificateAuthority
     Properties:
