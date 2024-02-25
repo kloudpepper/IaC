@@ -198,7 +198,6 @@ Resources:
         PrivateSubnet1: !GetAtt VPCStack.Outputs.PrivateSubnet1
         PrivateSubnet2: !GetAtt VPCStack.Outputs.PrivateSubnet2
         VPCEnpointSecurityGroup: !GetAtt SGStack.Outputs.VPCEnpointSecurityGroup
-        PrivateRouteTable: !GetAtt VPCStack.Outputs.PrivateRouteTable
 
   EFSStack:
     Type: AWS::CloudFormation::Stack
