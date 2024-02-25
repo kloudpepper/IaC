@@ -5,7 +5,7 @@
 ├── VPC                 #
 ├── NACL                #
 ├── SG                  #
-├── VPCEndpoints        #
+├── Endpoints           #
 ├── EFS                 #
 ├── PCA / ACM           #
 ├── ALB                 #

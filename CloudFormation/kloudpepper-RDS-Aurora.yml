@@ -39,7 +39,7 @@ Resources:
     #DeletionPolicy: Retain
     Properties:
       Description: "DB Cluster Parameter Group"
-      Family: aurora-mysql8.0
+      Family: aurora-mysql5.7
       Parameters: # https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/AuroraMySQL.Reference.html#AuroraMySQL.Reference.Parameters.Cluster #
         time_zone: Europe/Madrid
         character_set_client: utf8
@@ -56,7 +56,7 @@ Resources:
     Type: AWS::RDS::DBParameterGroup
     Properties:
       Description: "DB Parameter Group"
-      Family: aurora-mysql8.0
+      Family: aurora-mysql5.7
       Parameters:
         slow_query_log: '1'
         long_query_time: '10'
@@ -80,7 +80,7 @@ Resources:
       BackupRetentionPeriod: 30
       Engine: aurora-mysql
       EngineMode: provisioned
-      EngineVersion: '8.0.mysql_aurora.3.04.1'
+      EngineVersion: '5.7.mysql_aurora.2.11.4'
       DeletionProtection: !If [isProdEnvironmentType, true, false]
       EnableCloudwatchLogsExports:
         - audit

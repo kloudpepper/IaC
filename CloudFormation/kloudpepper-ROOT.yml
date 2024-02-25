@@ -99,8 +99,8 @@ Parameters:
 Mappings:
   Aurora:
     InstanceTypes:
-      prod: "db.t2.medium"    # 2 vCPUs + 4 GB
-      nonprod: "db.t2.small"  # 1 vCPUs + 2 GB
+      prod: "db.t2.medium"      # 2 vCPUs + 4 GB
+      nonprod: "db.t2.small"    # 1 vCPUs + 2 GB
 
 
 Metadata:
