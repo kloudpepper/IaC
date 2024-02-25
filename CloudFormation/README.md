@@ -1,8 +1,15 @@
-# IaC
-
-## Folder structure:
+# AWS CloudFormation - Nested stacks
+## Resources:
 ```
-├── CloudFormation      # CloudFormation templates
-├── Terraform           # Terraform templates
-├── Pulumi              # Pulumi templates
+├── ROOT                #
+├── VPC                 #
+├── NACL                #
+├── SG                  #
+├── VPCEndpoints        #
+├── EFS                 #
+├── PCA / ACM           #
+├── ALB                 #
+├── RDS (Aurora)        #
+├── Route53 (Private)   #
+├── ECS (Fargate)       #
 ```
