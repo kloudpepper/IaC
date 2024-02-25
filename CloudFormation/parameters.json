@@ -1,0 +1,54 @@
+[
+  {
+    "ParameterKey": "EnvironmentType",
+    "ParameterValue": "nonprod"
+  },
+  {
+    "ParameterKey": "EnvironmentName",
+    "ParameterValue": "kloudpepper-test"
+  },
+  {
+    "ParameterKey": "VpcCIDR",
+    "ParameterValue": "192.168.10.0/24"
+  },
+  {
+    "ParameterKey": "PublicSubnet1CIDR",
+    "ParameterValue": "192.168.10.128/27"
+  },
+  {
+    "ParameterKey": "PublicSubnet2CIDR",
+    "ParameterValue": "192.168.10.160/27"
+  },
+  {
+    "ParameterKey": "PrivateSubnet1CIDR",
+    "ParameterValue": "192.168.10.0/26"
+  },
+  {
+    "ParameterKey": "PrivateSubnet2CIDR",
+    "ParameterValue": "192.168.10.64/26"
+  },
+  {
+    "ParameterKey": "DBPrivateSubnet1CIDR",
+    "ParameterValue": "192.168.10.192/27"
+  },
+  {
+    "ParameterKey": "DBPrivateSubnet2CIDR",
+    "ParameterValue": "192.168.10.224/27"
+  },
+  {
+    "ParameterKey": "CreateALBCertificate",
+    "ParameterValue": "true"
+  },
+  {
+    "ParameterKey": "PrivateDomainName",
+    "ParameterValue": "example.com"
+  },
+  {
+    "ParameterKey": "DesiredCount",
+    "ParameterValue": "1"
+  },
+  {
+    "ParameterKey": "ImageUrlApp",
+    "ParameterValue": "frankpimienta/demo-cicd:app"
+  }
+]
