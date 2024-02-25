@@ -147,7 +147,7 @@ Resources:
   VPCStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-VPC.yml
+      TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-VPC.yaml
       TimeoutInMinutes: 5
       Parameters:
         EnvironmentType: !Ref EnvironmentType
@@ -163,7 +163,7 @@ Resources:
   NACLStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-NACL.yml
+      TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-NACL.yaml
       TimeoutInMinutes: 5
       Parameters:
         EnvironmentName: !Ref EnvironmentName
@@ -181,7 +181,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     DependsOn: NACLStack
     Properties:
-      TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-SG.yml
+      TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-SG.yaml
       TimeoutInMinutes: 5
       Parameters:
         EnvironmentName: !Ref EnvironmentName
@@ -191,7 +191,7 @@ Resources:
   VPCEndpointStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-VPCEndpoints.yml
+      TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-VPCEndpoints.yaml
       TimeoutInMinutes: 10
       Parameters:
         VpcID: !GetAtt VPCStack.Outputs.VPC
@@ -202,7 +202,7 @@ Resources:
   EFSStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-EFS.yml
+      TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-EFS.yaml
       TimeoutInMinutes: 10
       Parameters:
         EnvironmentType: !Ref EnvironmentType
@@ -215,7 +215,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Condition: isTrueCreateCertificate
     Properties:
-      TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-PCA.yml
+      TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-PCA.yaml
       TimeoutInMinutes: 5
       Parameters:
         EnvironmentName: !Ref EnvironmentName
@@ -224,7 +224,7 @@ Resources:
   ALBStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-ALB.yml
+      TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-ALB.yaml
       TimeoutInMinutes: 10
       Parameters:
         EnvironmentType: !Ref EnvironmentType
@@ -242,7 +242,7 @@ Resources:
     DependsOn:
       - VPCEndpointStack
     Properties:
-      TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-RDS-Aurora.yml
+      TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-RDS-Aurora.yaml
       TimeoutInMinutes: 30
       Parameters:
         EnvironmentType: !Ref EnvironmentType
@@ -255,7 +255,7 @@ Resources:
   Route53Stack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-Route53.yml
+      TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-Route53.yaml
       TimeoutInMinutes: 5
       Parameters:
         EnvironmentName: !Ref EnvironmentName
@@ -268,7 +268,7 @@ Resources:
   ECSStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-ECS-Fargate.yml
+      TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-ECS-Fargate.yaml
       TimeoutInMinutes: 30
       Parameters:
         EnvironmentType: !Ref EnvironmentType
