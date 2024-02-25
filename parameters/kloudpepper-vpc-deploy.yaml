@@ -1,0 +1,12 @@
+template-file-path: kloudpepper-VPC.yaml
+parameters:
+  EnvironmentType: nonprod
+  EnvironmentName: kloudpepper-test
+  VpcCIDR: 192.168.10.0/24
+  PublicSubnet1CIDR: 192.168.10.128/27
+  PublicSubnet2CIDR: 192.168.10.160/27
+  PrivateSubnet1CIDR: 192.168.10.0/26
+  PrivateSubnet2CIDR: 192.168.10.64/26
+  DBPrivateSubnet1CIDR: 192.168.10.192/27
+  DBPrivateSubnet2CIDR: 192.168.10.224/27
+tags: {}
