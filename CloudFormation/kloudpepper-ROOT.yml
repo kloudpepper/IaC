@@ -71,6 +71,7 @@ Parameters:
     ConstraintDescription: Please insert a valid range
 
   CreateALBCertificate:
+    Description: "If you want to create a new certificate, select TRUE; otherwise, select FALSE and insert the certificate's ARN in the OtherARNCertificate option"
     Type: String
     Default: FALSE
     AllowedValues:
@@ -78,13 +79,15 @@ Parameters:
       - FALSE
 
   OtherARNCertificate:
+    Description: "Please insert your certificate's ARN uploaded to ACM previously"
     Type: String
 
   PrivateDomainName:
+    Description: "Please insert your private domain. Example: example.com"
     Type: String
 
   DesiredCount:
-    Description: "Insert the number of desired tasks to be executed in each service"
+    Description: "Insert the number of desired Tasks to be executed in each ECS Service"
     Type: Number
     Default: 1
 
@@ -133,13 +136,6 @@ Metadata:
         Parameters:
           - DesiredCount
           - ImageUrlApp
-    ParameterLabels:
-      CreateALBCertificate:
-        default: "If you want to create a new certificate, select TRUE; otherwise, select FALSE and insert the certificate's ARN in the OtherARNCertificate option"
-      PrivateDomainName:
-        default: "Please insert your private domain. Example: example.com"
-      OtherARNCertificate:
-        default: "Please insert your certificate's ARN uploaded to ACM previously"
 
 
 Conditions:
