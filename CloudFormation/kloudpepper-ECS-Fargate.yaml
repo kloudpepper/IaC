@@ -23,10 +23,7 @@ Parameters:
   DesiredCount:
     Type: String
 
-  ImageUrlApp1:
-    Type: String
-
-  ImageUrlApp2:
+  ImageUrlApp:
     Type: String
 
   RDSEnpointPort:
@@ -124,7 +121,7 @@ Resources:
         - Name: ContainerApp1
           Cpu: !If [isProdEnvironmentType, 1024, 512]
           MemoryReservation: !If [isProdEnvironmentType, 4096, 2048]
-          Image: !Ref ImageUrlApp1
+          Image: !Ref ImageUrlApp
           PortMappings:
             - ContainerPort: 8554
           MountPoints:
@@ -178,7 +175,7 @@ Resources:
         - Name: ContainerApp2
           Cpu: !If [isProdEnvironmentType, 1024, 512]
           MemoryReservation: !If [isProdEnvironmentType, 4096, 2048]
-          Image: !Ref ImageUrlApp2
+          Image: !Ref ImageUrlApp
           PortMappings:
             - ContainerPort: 8554
           MountPoints:
