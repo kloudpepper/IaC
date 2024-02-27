@@ -29,12 +29,6 @@ Parameters:
   ImageUrlApp2:
     Type: String
 
-  DBUser:
-    Type: String
-
-  DBPassword:
-    Type: String
-
   RDSEnpointPort:
     Type: String
 
@@ -138,11 +132,11 @@ Resources:
               ContainerPath: /mnt/app1
           Environment:
             - Name: DB_USER
-              Value: !Ref 'DBUser'
+              Value: 'user'
             - Name: DB_PASSWORD
-              Value: !Ref 'DBPassword'
+              Value: 'password'
             - Name: DB_URL
-              Value: !Sub 'jdbc:mysql:aurora//db.${PrivateDomainName}:${RDSEnpointPort}/${EnvironmentName}DB'
+              Value: !Sub 'jdbc:mysql:aurora//db.${PrivateDomainName}:${RDSEnpointPort}/AuroraDB'
           StopTimeout: 30
           Ulimits:
             - Name: 'nofile'
@@ -192,11 +186,11 @@ Resources:
               ContainerPath: /mnt/app2
           Environment:
             - Name: DB_USER
-              Value: !Ref 'DBUser'
+              Value: 'user'
             - Name: DB_PASSWORD
-              Value: !Ref 'DBPassword'
+              Value: 'password'
             - Name: DB_URL
-              Value: !Sub 'jdbc:mysql:aurora//db.${PrivateDomainName}:${RDSEnpointPort}/${EnvironmentName}DB'
+              Value: !Sub 'jdbc:mysql:aurora//db.${PrivateDomainName}:${RDSEnpointPort}/AuroraDB'
           StopTimeout: 30
           Ulimits:
             - Name: 'nofile'

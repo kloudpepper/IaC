@@ -40,8 +40,8 @@ Resources:
     Properties:
       Description: "DB Cluster Parameter Group"
       Family: aurora-mysql5.7
-      Parameters: # https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/AuroraMySQL.Reference.html#AuroraMySQL.Reference.Parameters.Cluster #
-        time_zone: Europe/Madrid
+      Parameters: #https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/AuroraMySQL.Reference.html#AuroraMySQL.Reference.Parameters.Cluster #
+        time_zone: Europe/Paris #https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/MySQL.Concepts.LocalTimeZone.html
         character_set_client: utf8
         character_set_connection: utf8
         character_set_database: utf8
@@ -71,7 +71,7 @@ Resources:
     #UpdateReplacePolicy: Snapshot
     Properties:
       DBClusterIdentifier: !Sub "${EnvironmentName}-DB-Cluster"
-      DatabaseName: !Sub "${EnvironmentName}DB"
+      DatabaseName: AuroraDB #DatabaseName must begin with a letter and contain only alphanumeric characters
       DBClusterParameterGroupName: !Ref DBClusterParameterGroup
       StorageEncrypted: !If [isProdEnvironmentType, true, false]
       VpcSecurityGroupIds:

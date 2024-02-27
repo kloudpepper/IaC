@@ -45,7 +45,7 @@ Resources:
       HostedZoneId: !GetAtt HostedZone.Id
       Comment: Load Balancer alias
       RecordSets:
-        - Name: !Sub '${EnvironmentName}.corebancario-diners.com.'
+        - Name: !Sub '${EnvironmentName}.${PrivateDomainName}.'
           Type: A
           AliasTarget:
             HostedZoneId: !Ref AlbCanonicalHostedZoneID
