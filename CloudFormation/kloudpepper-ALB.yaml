@@ -41,10 +41,10 @@ Resources:
     Properties:
       HealthCheckIntervalSeconds: 60
       HealthCheckPath: "/"
-      Port: 8554
-      Protocol: "HTTPS"
+      Port: 80
+      Protocol: "HTTP"
       HealthCheckPort: "traffic-port"
-      HealthCheckProtocol: "HTTPS"
+      HealthCheckProtocol: "HTTP"
       HealthCheckTimeoutSeconds: 30
       UnhealthyThresholdCount: 10
       TargetType: "ip"
@@ -79,10 +79,10 @@ Resources:
     Properties:
       HealthCheckIntervalSeconds: 60
       HealthCheckPath: "/"
-      Port: 8554
-      Protocol: "HTTPS"
+      Port: 80
+      Protocol: "HTTP"
       HealthCheckPort: "traffic-port"
-      HealthCheckProtocol: "HTTPS"
+      HealthCheckProtocol: "HTTP"
       HealthCheckTimeoutSeconds: 30
       UnhealthyThresholdCount: 10
       TargetType: "ip"

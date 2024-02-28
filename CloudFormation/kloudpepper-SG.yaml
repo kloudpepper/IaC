@@ -37,9 +37,9 @@ Resources:
       GroupName: !Sub ${EnvironmentName}-ECS-SG
       SecurityGroupIngress:
       - SourceSecurityGroupId: !GetAtt ALBSecurityGroup.GroupId
-        FromPort: 8554
+        FromPort: 80
         IpProtocol: tcp
-        ToPort: 8554
+        ToPort: 80
       VpcId: !Ref VpcID
       Tags:
         -

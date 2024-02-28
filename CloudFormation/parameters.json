@@ -49,6 +49,6 @@
   },
   {
     "ParameterKey": "ImageUrlApp",
-    "ParameterValue": "frankpimienta/demo-cicd:app"
+    "ParameterValue": "hello-world:latest"
   }
 ]

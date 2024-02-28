@@ -123,7 +123,7 @@ Resources:
           MemoryReservation: !If [isProdEnvironmentType, 4096, 2048]
           Image: !Ref ImageUrlApp
           PortMappings:
-            - ContainerPort: 8554
+            - ContainerPort: 80
           MountPoints:
             - SourceVolume: efs-app1
               ContainerPath: /mnt/app1
@@ -177,7 +177,7 @@ Resources:
           MemoryReservation: !If [isProdEnvironmentType, 4096, 2048]
           Image: !Ref ImageUrlApp
           PortMappings:
-            - ContainerPort: 8554
+            - ContainerPort: 80
           MountPoints:
             - SourceVolume: efs-app2
               ContainerPath: /mnt/app2
@@ -254,7 +254,7 @@ Resources:
       HealthCheckGracePeriodSeconds: 60
       LoadBalancers:
         - TargetGroupArn: !Ref TargetGroupAPP1
-          ContainerPort: 8554
+          ContainerPort: 80
           ContainerName: ContainerApp1
       Tags:
         -
@@ -287,7 +287,7 @@ Resources:
       HealthCheckGracePeriodSeconds: 60
       LoadBalancers:
         - TargetGroupArn: !Ref TargetGroupAPP2
-          ContainerPort: 8554
+          ContainerPort: 80
           ContainerName: ContainerApp2
       Tags:
         -
