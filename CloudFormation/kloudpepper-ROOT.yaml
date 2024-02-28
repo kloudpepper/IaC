@@ -9,10 +9,12 @@ Parameters:
     AllowedValues:
       - prod
       - nonprod
+    Default: nonprod
 
   EnvironmentName:
     Description: "Insert environment name. Example: kloudpepper-test"
     Type: String
+    Default: kloudpepper-test
 
   VpcCIDR:
     Description: "Insert VPC CIDR"
@@ -80,10 +82,10 @@ Parameters:
   CreateALBCertificate:
     Description: "If you want to create a new certificate, select TRUE; otherwise, select FALSE and insert the certificate's ARN in the OtherARNCertificate option"
     Type: String
-    Default: FALSE
     AllowedValues:
       - TRUE
       - FALSE
+    Default: TRUE
 
   OtherARNCertificate:
     Description: "Please insert your certificate's ARN uploaded to ACM previously"
@@ -92,6 +94,7 @@ Parameters:
   PrivateDomainName:
     Description: "Please insert your private domain. Example: example.com"
     Type: String
+    Default: kloudpepper.com
 
   DesiredCount:
     Description: "Insert the number of desired Tasks to be executed in each ECS Service"
@@ -101,6 +104,7 @@ Parameters:
   ImageUrlApp:
     Description: "Insert the url of the App container image"
     Type: String
+    Default: hello-world:latest
 
 
 Mappings:
