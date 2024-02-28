@@ -292,5 +292,6 @@ Resources:
         RDSEnpointPort: !GetAtt RDSStack.Outputs.RDSEnpointPort
         TargetGroupAPP: !GetAtt ALBStack.Outputs.TargetGroupAPP
         FileSystemId: !GetAtt EFSStack.Outputs.FileSystemId
-        AccessPointIdDataApp: !GetAtt EFSStack.Outputs.AccessPointIdDataApp
+        AccessPointIdDataApp1: !GetAtt EFSStack.Outputs.AccessPointIdDataApp1
+        AccessPointIdDataApp2: !GetAtt EFSStack.Outputs.AccessPointIdDataApp2
         PrivateDomainName: !Ref PrivateDomainName
