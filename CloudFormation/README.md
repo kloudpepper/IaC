@@ -13,6 +13,7 @@
 ├── Route53 (Private)   # DNS.
 ├── ECS (Fargate)       # Container cluster with AWS Fargate
 ```
-Note: If you select the prod environment and want to delete the resources after the test, you must deactivate Deletion Protection on Aurora and ALB through AWS Console before deleting.
+Note: If you select the **prod** environment and want to delete the resources after the test, you must deactivate **Deletion Protection** on Aurora and ALB through AWS Console before deleting.
 
+## Architecture Diagram:
 ![](https://github.com/kloudpepper/IaC/blob/main/CloudFormation/images/architecture_diagram.png)
