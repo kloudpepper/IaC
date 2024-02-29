@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "Plantilla para actualizar la zona corebancario-diners.com en Route53"
+Description: "CloudFormation template to create DNS records on Route53"
 
 Parameters:
   EnvironmentName:
