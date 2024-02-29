@@ -29,6 +29,19 @@ Resources:
       VpcEndpointType: 'Interface'
       VpcId: !Ref VpcID
 
+  LogsEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      PrivateDnsEnabled: true
+      SecurityGroupIds:
+        - !Ref VPCEnpointSecurityGroup
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.logs"
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+      VpcEndpointType: 'Interface'
+      VpcId: !Ref VpcID
+
   ECRApiEndpoint:
     Type: AWS::EC2::VPCEndpoint
     Properties:
@@ -55,13 +68,13 @@ Resources:
       VpcEndpointType: 'Interface'
       VpcId: !Ref VpcID
 
-  LogsEndpoint:
+  SecretsManagerEndpoint:
     Type: AWS::EC2::VPCEndpoint
     Properties:
       PrivateDnsEnabled: true
       SecurityGroupIds:
         - !Ref VPCEnpointSecurityGroup
-      ServiceName: !Sub "com.amazonaws.${AWS::Region}.logs"
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.secretsmanager"
       SubnetIds:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2

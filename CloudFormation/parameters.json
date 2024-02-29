@@ -41,7 +41,7 @@
   },
   {
     "ParameterKey": "PrivateDomainName",
-    "ParameterValue": "example.com"
+    "ParameterValue": "kloudpepper.com"
   },
   {
     "ParameterKey": "DesiredCount",
@@ -49,6 +49,6 @@
   },
   {
     "ParameterKey": "ImageUrlApp",
-    "ParameterValue": "hello-world:latest"
+    "ParameterValue": "public.ecr.aws/docker/library/nginx:alpine"
   }
 ]

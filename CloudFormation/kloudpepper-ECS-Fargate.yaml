@@ -26,9 +26,6 @@ Parameters:
   ImageUrlApp:
     Type: String
 
-  RDSEnpointPort:
-    Type: String
-
   TargetGroupAPP1:
     Type: String
 
@@ -110,17 +107,20 @@ Resources:
       - LogGroupApp1
     Properties:
       Family: !Sub ${EnvironmentName}-TD-App1
-      Cpu: !If [isProdEnvironmentType, 1024, 512]
-      Memory: !If [isProdEnvironmentType, 4096, 2048]
+      Cpu: !If [isProdEnvironmentType, 512, 256]
+      Memory: !If [isProdEnvironmentType, 1024, 512]
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
+      RuntimePlatform:
+        CpuArchitecture: X86_64
+        OperatingSystemFamily: LINUX
       ExecutionRoleArn: !Ref ECSTaskExecutionRole
       TaskRoleArn: !Ref ECSTaskRole
       ContainerDefinitions:
         - Name: ContainerApp1
-          Cpu: !If [isProdEnvironmentType, 1024, 512]
-          MemoryReservation: !If [isProdEnvironmentType, 4096, 2048]
+          Cpu: !If [isProdEnvironmentType, 512, 256]
+          MemoryReservation: !If [isProdEnvironmentType, 1024, 512]
           Image: !Ref ImageUrlApp
           PortMappings:
             - ContainerPort: 80
@@ -133,7 +133,7 @@ Resources:
             - Name: DB_PASSWORD
               Value: 'password'
             - Name: DB_URL
-              Value: !Sub 'jdbc:mysql:aurora//db.${PrivateDomainName}:${RDSEnpointPort}/AuroraDB'
+              Value: !Sub 'jdbc:mysql:aurora//db.${PrivateDomainName}:33066/AuroraDB'
           StopTimeout: 30
           Ulimits:
             - Name: 'nofile'
@@ -164,17 +164,20 @@ Resources:
       - LogGroupApp2
     Properties:
       Family: !Sub ${EnvironmentName}-TD-App2
-      Cpu: !If [isProdEnvironmentType, 1024, 512]
-      Memory: !If [isProdEnvironmentType, 4096, 2048]
+      Cpu: !If [isProdEnvironmentType, 512, 256]
+      Memory: !If [isProdEnvironmentType, 1024, 512]
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
+      RuntimePlatform:
+        CpuArchitecture: X86_64
+        OperatingSystemFamily: LINUX
       ExecutionRoleArn: !Ref ECSTaskExecutionRole
       TaskRoleArn: !Ref ECSTaskRole
       ContainerDefinitions:
         - Name: ContainerApp2
-          Cpu: !If [isProdEnvironmentType, 1024, 512]
-          MemoryReservation: !If [isProdEnvironmentType, 4096, 2048]
+          Cpu: !If [isProdEnvironmentType, 512, 256]
+          MemoryReservation: !If [isProdEnvironmentType, 1024, 512]
           Image: !Ref ImageUrlApp
           PortMappings:
             - ContainerPort: 80
@@ -187,7 +190,7 @@ Resources:
             - Name: DB_PASSWORD
               Value: 'password'
             - Name: DB_URL
-              Value: !Sub 'jdbc:mysql:aurora//db.${PrivateDomainName}:${RDSEnpointPort}/AuroraDB'
+              Value: !Sub 'jdbc:mysql:aurora//db.${PrivateDomainName}:33066/AuroraDB'
           StopTimeout: 30
           Ulimits:
             - Name: 'nofile'

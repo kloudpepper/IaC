@@ -318,12 +318,11 @@ Resources:
       NatGatewayId: !Ref NATGateway1
 
   RouteToNatGateway2:
-    Condition: isProdEnvironmentType
     Type: AWS::EC2::Route
     Properties:
       RouteTableId: !Ref PrivateRouteTable2
       DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NATGateway2
+      NatGatewayId: !If [isProdEnvironmentType, !Ref NATGateway2, !Ref NATGateway1]
 
 # Create destination route 10.10.0.0/16 to transit gateway (Example: to on-premise)
   RouteToTransitGateway1:

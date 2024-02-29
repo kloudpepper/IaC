@@ -104,7 +104,7 @@ Parameters:
   ImageUrlApp:
     Description: "Insert the url of the App container image"
     Type: String
-    Default: hello-world:latest
+    Default: public.ecr.aws/docker/library/nginx:alpine
 
 
 Mappings:
@@ -289,8 +289,8 @@ Resources:
         ECSSecurityGroup: !GetAtt SGStack.Outputs.ECSSecurityGroup
         DesiredCount: !Ref DesiredCount
         ImageUrlApp: !Ref ImageUrlApp
-        RDSEnpointPort: !GetAtt RDSStack.Outputs.RDSEnpointPort
-        TargetGroupAPP: !GetAtt ALBStack.Outputs.TargetGroupAPP
+        TargetGroupAPP1: !GetAtt ALBStack.Outputs.TargetGroupAPP1
+        TargetGroupAPP2: !GetAtt ALBStack.Outputs.TargetGroupAPP2
         FileSystemId: !GetAtt EFSStack.Outputs.FileSystemId
         AccessPointIdDataApp1: !GetAtt EFSStack.Outputs.AccessPointIdDataApp1
         AccessPointIdDataApp2: !GetAtt EFSStack.Outputs.AccessPointIdDataApp2
