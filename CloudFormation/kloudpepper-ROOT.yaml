@@ -254,7 +254,7 @@ Resources:
       - VPCEndpointStack
     Properties:
       TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-RDS-Aurora.yaml
-      TimeoutInMinutes: 30
+      TimeoutInMinutes: 60
       Parameters:
         EnvironmentType: !Ref EnvironmentType
         EnvironmentName: !Ref EnvironmentName
