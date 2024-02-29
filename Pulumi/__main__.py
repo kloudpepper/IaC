@@ -4,7 +4,7 @@ import pulumi_aws as aws
 import pulumi_aws_apigateway as apigateway
 
 # An execution role to use for the Lambda function
-role = aws.iam.Role("role", 
+role = aws.iam.Role("role",
     assume_role_policy=json.dumps({
         "Version": "2012-10-17",
         "Statement": [{
@@ -26,10 +26,10 @@ fn = aws.lambda_.Function("fn",
 
 # A REST API to route requests to HTML content and the Lambda function
 api = apigateway.RestAPI("api",
-  routes=[
+    routes=[
     apigateway.RouteArgs(path="/", local_path="www"),
     apigateway.RouteArgs(path="/date", method=apigateway.Method.GET, event_handler=fn)
-  ])
+    ])
 
 # The URL at which the REST API will be served.
 pulumi.export("url", api.url)
