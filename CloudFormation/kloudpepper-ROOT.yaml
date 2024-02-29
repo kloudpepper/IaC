@@ -159,7 +159,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-VPC.yaml
-      TimeoutInMinutes: 5
+      TimeoutInMinutes: 10
       Parameters:
         EnvironmentType: !Ref EnvironmentType
         EnvironmentName: !Ref EnvironmentName
@@ -175,7 +175,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-NACL.yaml
-      TimeoutInMinutes: 5
+      TimeoutInMinutes: 10
       Parameters:
         EnvironmentName: !Ref EnvironmentName
         VpcID: !GetAtt VPCStack.Outputs.VPC
@@ -193,7 +193,7 @@ Resources:
     DependsOn: NACLStack
     Properties:
       TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-SG.yaml
-      TimeoutInMinutes: 5
+      TimeoutInMinutes: 10
       Parameters:
         EnvironmentName: !Ref EnvironmentName
         VpcID: !GetAtt VPCStack.Outputs.VPC
@@ -227,7 +227,7 @@ Resources:
     Condition: isTrueCreateCertificate
     Properties:
       TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-PCA.yaml
-      TimeoutInMinutes: 5
+      TimeoutInMinutes: 10
       Parameters:
         EnvironmentName: !Ref EnvironmentName
         PrivateDomainName: !Ref PrivateDomainName
@@ -267,7 +267,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub https://${EnvironmentName}.s3.${AWS::URLSuffix}/kloudpepper-Route53.yaml
-      TimeoutInMinutes: 5
+      TimeoutInMinutes: 10
       Parameters:
         EnvironmentName: !Ref EnvironmentName
         VpcID: !GetAtt VPCStack.Outputs.VPC
