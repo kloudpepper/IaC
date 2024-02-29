@@ -15,4 +15,4 @@
 ```
 Note: If you select the prod environment and want to delete the resources after the test, you must deactivate Deletion Protection on Aurora and ALB through AWS Console before deleting.
 
-![alt text](https://github.com/kloudpepper/IaC/tree/main/CloudFormation/images/architecture_diagram.png?raw=true)
+![Screenshot](https://github.com/kloudpepper/IaC/tree/main/CloudFormation/images/architecture_diagram.png)
