@@ -1,12 +1,11 @@
 terraform {
     backend "s3" {
-        bucket          = "state-terra-core-bancario"
-        key             = "principal/terraform.tfstate"
+        bucket          = "kloudpepper-test-state"
+        key             = "terraform.tfstate"
         region          = "us-east-1"
 
-        dynamodb_table  = "state-terra-core-bancario-principal"
+        dynamodb_table  = "kloudpepper-test-state"
         encrypt         = true
-        profile         = "580261040628_AWSAdministratorAccess"
     }
 }
 
@@ -21,6 +20,13 @@ module "VPC" {
     transit_gateway_ID                    = var.transit_gateway_ID
     create_igw                            = var.create_igw
     create_transit_gateway_attachment     = var.create_transit_gateway_attachment
+}
+
+module "NACL" {
+    source = "./modules/NACL"
+    environmentName                       = var.environmentName
+    vpc_CIDR                              = var.vpc_CIDR
+    vpc_id                                = module.VPC.vpc_id
 }
 
 module "SG" {
@@ -40,51 +46,31 @@ module "VPCEndpoints" {
     PrivateRouteTable_id                  = module.VPC.PrivateRouteTable_id
     VPCEnpointSecurityGroup_id            = module.SG.VPCEnpointSecurityGroup_id
     Services = [
-        "ec2",
-        "ssm",
         "ssmmessages",
-        "ec2messages",
-        "events",
-        "sns",
         "monitoring",
         "ecr.api",
         "ecr.dkr",
-        "application-autoscaling",
         "secretsmanager",
-        "logs",
-        "s3"
+        "logs"
     ]
 }
 
-module "S3" {
-    source = "./modules/S3"
-    environmentName                       = var.environmentName
-}
-
-module "EFS" {
-    source = "./modules/EFS"
+module "RDS" {
+    source = "./modules/RDS"
     environmentName                       = var.environmentName
     PrivateSubnet1_id                     = module.VPC.PrivateSubnet1_id
     PrivateSubnet2_id                     = module.VPC.PrivateSubnet2_id
-    EFSSecurityGroup_id                   = module.SG.EFSSecurityGroup_id
+    RDSSecurityGroup_id                   = module.SG.RDSSecurityGroup_id
+    snapshot_ARN                          = var.snapshot_ARN
 }
 
-module "SFTP" {
-    source = "./modules/SFTP"
+module "MQ" {
+    source = "./modules/MQ"
     environmentName                       = var.environmentName
-    vpc_id                                = module.VPC.vpc_id
     PrivateSubnet1_id                     = module.VPC.PrivateSubnet1_id
-    PrivateSubnet2_id                     = module.VPC.PrivateSubnet2_id
-    SFTPSecurityGroup_id                  = module.SG.SFTPSecurityGroup_id
-}
-
-module "NLB" {
-    source = "./modules/NLB"
-    environmentName                       = var.environmentName
-    vpc_id                                = module.VPC.vpc_id
-    PrivateSubnet1_id                     = module.VPC.PrivateSubnet1_id
-    PrivateSubnet2_id                     = module.VPC.PrivateSubnet2_id
-    ip_nat_IIB_onpremise                  = var.ip_nat_IIB_onpremise
+    MQSecurityGroup_id                    = module.SG.MQSecurityGroup_id
+    MQUser                                = var.MQUser
+    MQPassword                            = var.MQPassword
 }
 
 module "ALB" {
@@ -97,26 +83,28 @@ module "ALB" {
     certificate_ARN                       = var.certificate_ARN
 }
 
-/* module "RDS" {
-    source = "./modules/RDS"
+module "Route53" {
+    source = "./modules/Route53"
     environmentName                       = var.environmentName
+    vpc_id                                = module.VPC.vpc_id
     PrivateSubnet1_id                     = module.VPC.PrivateSubnet1_id
     PrivateSubnet2_id                     = module.VPC.PrivateSubnet2_id
-    RDSSecurityGroup_id                   = module.SG.RDSSecurityGroup_id
-    snapshot_ARN                          = var.snapshot_ARN
-} */
-
-module "MQ" {
-    source = "./modules/MQ"
-    environmentName                       = var.environmentName
-    PrivateSubnet1_id                     = module.VPC.PrivateSubnet1_id
-    MQSecurityGroup_id                    = module.SG.MQSecurityGroup_id
-    MQUser                                = var.MQUser
-    MQPassword                            = var.MQPassword
+    ALBSecurityGroup_id                   = module.SG.ALBSecurityGroup_id
+    certificate_ARN                       = var.certificate_ARN
 }
 
-module "ECS" {
-    source = "./modules/ECS"
+module "CloudMap" {
+    source = "./modules/CloudMap"
+    environmentName                       = var.environmentName
+    vpc_id                                = module.VPC.vpc_id
+    PrivateSubnet1_id                     = module.VPC.PrivateSubnet1_id
+    PrivateSubnet2_id                     = module.VPC.PrivateSubnet2_id
+    ALBSecurityGroup_id                   = module.SG.ALBSecurityGroup_id
+    certificate_ARN                       = var.certificate_ARN
+}
+
+module "EKS" {
+    source = "./modules/EKS"
     region                                = var.region
     environmentName                       = var.environmentName
     PrivateSubnet1_id                     = module.VPC.PrivateSubnet1_id
@@ -148,12 +136,4 @@ module "ECS" {
     AccessPoint_TAFJ_log_id               = module.EFS.AccessPoint_TAFJ_log_id
     AccessPoint_TAFJ_logT24_id            = module.EFS.AccessPoint_TAFJ_logT24_id
     DesiredCount                          = var.DesiredCount
-}
-
-module "Lambda" {
-    source = "./modules/Lambda"
-    environmentName                       = var.environmentName
-    PrivateSubnet1_id                     = module.VPC.PrivateSubnet1_id
-    PrivateSubnet2_id                     = module.VPC.PrivateSubnet2_id
-    LambdaSecurityGroup_id                = module.SG.LambdaSecurityGroup_id
 }

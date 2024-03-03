@@ -6,8 +6,8 @@
 ├── SG                    # Security Groups, Inbound and Outbound rules.
 ├── Endpoints             # VPC endpoints for CloudWatch, ECR and Secrets Manager.
 ├── MQ (Apache ActiveMQ)  # Message broker service.
-├── ALB                   # Application Load Balancer, HTTPS Listener, Rules.
 ├── RDS (PostgreSQL)      # PostgreSQL Database.
+├── ALB                   # Application Load Balancer, HTTPS Listener, Rules.
 ├── Route53 (Private)     # DNS.
 ├── Cloud Map             # Define user-friendly names.
 ├── EKS (Fargate)         # Kubernetes cluster with AWS Fargate.
