@@ -194,8 +194,10 @@ Outputs:
     Value: !GetAtt 'ApplicationLoadBalancer.CanonicalHostedZoneID'
 
   AlbDNSName:
-    Description: Export ALB name for Route53
+    Description: Export ALB name for Route53 and CodeBuild
     Value: !GetAtt 'ApplicationLoadBalancer.DNSName'
+    Export:
+      Name: !Sub ${EnvironmentName}-AlbDNSName
 
   TargetGroupAPP1:
     Description: Export Target Group for container App1

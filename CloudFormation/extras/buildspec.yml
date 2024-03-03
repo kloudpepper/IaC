@@ -1,0 +1,32 @@
+version: 0.2
+
+env:
+  shell: bash
+  variables:
+    SHELL: "/bin/bash"
+
+phases:
+  install:
+    commands:
+      - echo "Installing AWS CLI v2 and Curl"
+      - curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+      - unzip -q awscliv2.zip
+      - ./aws/install -i /usr/local/aws-cli -b /usr/local/bin --update
+      - /usr/local/bin/aws --version
+      - yum -y install curl
+
+  pre_build:
+    commands:
+      - echo "You are assuming the Role of running commands on the target account"
+      - eval $(/usr/local/bin/aws sts assume-role --role-arn arn:aws:iam::$AccountID:role/AWSCloudFormationStackSetExecutionRole --role-session-name test | jq -r '.Credentials | "export AWS_ACCESS_KEY_ID=\(.AccessKeyId)\nexport AWS_SECRET_ACCESS_KEY=\(.SecretAccessKey)\nexport AWS_SESSION_TOKEN=\(.SessionToken)\n"')
+      - echo "Variables Export"
+      - echo SHELL=$SHELL
+      - DATE=$(date +"%D")
+      - TIME=$(date +"%H:%M:%S")
+      - ALB=$(/usr/local/bin/aws cloudformation list-exports --query "Exports[?Name=='$EnvironmentName-AlbDNSName'].Value" --output text)
+
+  post_build:
+    commands:
+      - echo "Post Install Test"
+      - echo "Date:$DATE --- Time:$TIME"
+      - TEST=$(curl -k -I https://$ALB/demo | grep -i "HTTP/1.1 200 OK" | wc -l) && if [ "$TEST" -eq 0 ]; then exit 1; else echo "Web Site OK"; fi
