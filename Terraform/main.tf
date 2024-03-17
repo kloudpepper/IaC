@@ -12,14 +12,9 @@ terraform {
 ### Modules ###
 module "VPC" {
     source = "./modules/VPC"
-    environmentName                       = var.environmentName
+    environment_Name                       = var.environment_Name
     vpc_CIDR                              = var.vpc_CIDR
-    private_subnet_1_CIDR                 = var.private_subnet_1_CIDR
-    private_subnet_2_CIDR                 = var.private_subnet_2_CIDR
-    reserved_subnet_CIDR                  = var.reserved_subnet_CIDR
-    transit_gateway_ID                    = var.transit_gateway_ID
     create_igw                            = var.create_igw
-    create_transit_gateway_attachment     = var.create_transit_gateway_attachment
 }
 
 module "NACL" {
