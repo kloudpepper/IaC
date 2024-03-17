@@ -8,10 +8,11 @@ terraform {
 }
 
 provider "aws" {
-  region                   = var.AWS_region
+  region                                = var.aws_Region
   default_tags {
   tags = {
-    Env                     = var.Env
+    Environment                         = var.environmentType
+    EnvironmentName                     = var.environmentName
     }
   }
 }

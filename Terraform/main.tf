@@ -38,7 +38,7 @@ module "SG" {
 
 module "VPCEndpoints" {
     source = "./modules/VPCEndpoints"
-    region                                = var.region
+    region                                = var.aws_Region
     environmentName                       = var.environmentName
     vpc_id                                = module.VPC.vpc_id
     PrivateSubnet1_id                     = module.VPC.PrivateSubnet1_id

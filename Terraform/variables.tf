@@ -6,7 +6,11 @@ variable "environmentName" {
   type = string
 }
 
-variable "region" {
+variable "environmentType" {
+  type = string
+}
+
+variable "aws_Region" {
   type    = string
 }
 
@@ -14,9 +18,25 @@ variable "vpc_CIDR" {
 	type    = string
 }
 
-variable "private_subnet_1_CIDR" {
+variable "availability_Zones" {
+	type 		= number
+	default = 2
+	validation {
+		condition = var.availability_Zones <= 3 && var.availability_Zones >= 1
+		error_message = "The number of availability zones must be between 1 and 3"
+		}
+}
+
+variable "private_subnet_CIDRs" {
 	type    = string
 }
+
+
+
+
+
+
+
 
 variable "private_subnet_2_CIDR" {
 	type    = string
@@ -94,7 +114,7 @@ variable "DesiredCount" {
 
 
 ### NEW
-variable "AWS_region" {
+variable "aws_Region" {
   type    = string
 }
 
@@ -149,7 +169,7 @@ variable "Env" {
   type    = string
 }
 
-variable "AWS_regions" {
+variable "region" {
   type    = map(string)
   default = {
 	us-east-1				= "use1"
