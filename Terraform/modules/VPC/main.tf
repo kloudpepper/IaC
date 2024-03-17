@@ -2,215 +2,179 @@
 ### Network Module ###
 ######################
 
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
+locals {
+  subnet_cidr_blocks = [for i in range(0, var.public_Subnets + var.private_Subnets) : cidrsubnet(var.vpc_CIDR, 4, i)]
+}
+
 
 # Create VPC
 resource "aws_vpc" "vpc" {
-    cidr_block              = var.vpc_CIDR
-    enable_dns_support      = "true"
-    enable_dns_hostnames    = "true"
-    instance_tenancy        = "default"
+  cidr_block           = var.vpc_CIDR
+  enable_dns_support   = "true"
+  enable_dns_hostnames = "true"
+  instance_tenancy     = "default"
 
-    tags = {
-        Name                = "${var.environmentName}-VPC"
-    }
-}
-
-variable "availability_zones" {
-    description = "The number of availability zones (valid values: 1, 2, 3)"
-    default     = 2
-    validation {
-    condition = var.availability_Zones <= 3 && var.availability_Zones >= 1
-    error_message = "The number of availability zones must be between 1 and 3"
-    }
-}
-
-locals {
-    subnet_bits = 8 - log(ceil((cidrhost(cidrsubnet(var.vpc_CIDR, 0, 0), -1)) / var.availability_Zones), 2)
-}
-
-resource "null_resource" "subnet_calculator" {
-    triggers = {
-        vpc_CIDR = var.vpc_CIDR
-        availability_Zones = var.availability_Zones
-        }
-
-    provisioner "local-exec" {
-        command = <<EOT
-        subnets=$(echo ${var.vpc_CIDR} | terraform console -no-color -var="az_count=${var.availability_Zones}" -var="subnet_bits=${local.subnet_bits}" 'cidrsubnet(var.vpc_CIDR, local.subnet_bits, count.index)')
-        echo "Number of subnets: $(echo $subnets | tr -d '[]' | tr -d '"')"
-        EOT
-        }
-}
-
-locals {
-    availability_Zones = var.availability_Zones > 0 ? var.availability_Zones : 1
-    public_subnets_cidr_blocks = [for i in range(var.availability_Zones) : cidrsubnet(var.vpc_CIDR, local.subnet_bits, i)]
-    private_subnets_cidr_blocks = [for i in range(var.availability_Zones * 2) : cidrsubnet(var.vpc_CIDR, local.subnet_bits, var.availability_Zones + i)]
-}
-
-resource "aws_subnet" "public" {
-    count       = local.availability_Zones
-    vpc_id                  = aws_vpc.vpc.id
-    cidr_block  = element(local.public_subnets_cidr_blocks, count.index)
-    map_public_ip_on_launch = "false"
-    availability_zone       = data.aws_availability_zones.available.names[count]
-    tags = {
-        Name                = "${var.environmentName}-PublicSubnet"
-        }
-}
-
-resource "aws_subnet" "private" {
-    count       = local.availability_Zones * 2
-    vpc_id                  = aws_vpc.vpc.id
-    cidr_block  = element(local.private_subnets_cidr_blocks, count.index)
-    map_public_ip_on_launch = "false"
-    availability_zone       = data.aws_availability_zones.available.names[count]
-    tags = {
-        Name                = "${var.environmentName}-PrivateSubnet"
-        }
+  tags = {
+    Name = "${var.environment_Name}-vpc"
+  }
 }
 
 
+# Create Public and Private Subnets
+resource "aws_subnet" "public_subnets" {
+  count                   = var.public_Subnets
+  vpc_id                  = aws_vpc.vpc.id
+  cidr_block              = element(local.subnet_cidr_blocks, count.index)
+  availability_zone       = element(data.aws_availability_zones.available.names, count.index % var.availability_Zones)
+  map_public_ip_on_launch = true
+  tags = {
+    Name = "${var.environment_Name}-public-subnet-${count.index + 1}"
+  }
+}
+
+resource "aws_subnet" "private_subnets" {
+  count             = var.private_Subnets
+  vpc_id            = aws_vpc.vpc.id
+  cidr_block        = element(local.subnet_cidr_blocks, count.index + var.availability_Zones)
+  availability_zone = element(data.aws_availability_zones.available.names, count.index % var.availability_Zones)
+  tags = {
+    Name = "${var.environment_Name}-private-subnet-${count.index + 1}"
+  }
+}
 
 
+# Create Internet Gateway
+resource "aws_internet_gateway" "igw" {
+  count      = var.public_Subnets != 0 ? 1 : 0
+  depends_on = [aws_vpc.vpc]
+  vpc_id     = aws_vpc.vpc.id
+  tags = {
+    Name = "${var.environment_Name}-igw"
+  }
+}
 
 
+# Create Simple Nat Gateway (1AZ)
+resource "aws_eip" "eip_1AZ" {
+  count = var.create_NatGateway_1AZ ? 1 : 0
+  tags = {
+    Name = "${var.environment_Name}-eip"
+  }
+}
+
+resource "aws_nat_gateway" "nat_gateway_1AZ" {
+  count         = var.create_NatGateway_1AZ ? 1 : 0
+  depends_on    = [aws_internet_gateway.igw]
+  allocation_id = aws_eip.eip_1AZ[count.index].id
+  subnet_id     = aws_subnet.public_subnets[0].id
+
+  tags = {
+    Name = "${var.environment_Name}-ngw"
+  }
+}
 
 
+# Create Nat Gateway HA (1perAZ)
+resource "aws_eip" "eip_1perAZ" {
+  count = var.create_NatGateway_1perAZ ? var.availability_Zones : 0
+  tags = {
+    Name = "${var.environment_Name}-eip-${count.index + 1}"
+  }
+}
+
+resource "aws_nat_gateway" "nat_gateway_1perAZ" {
+  count         = var.create_NatGateway_1perAZ ? var.availability_Zones : 0
+  depends_on    = [aws_internet_gateway.igw]
+  allocation_id = aws_eip.eip_1perAZ[count.index].id
+  subnet_id     = element(aws_subnet.public_subnets[*].id, count.index)
+
+  tags = {
+    Name = "${var.environment_Name}-ngw-${count.index + 1}"
+  }
+}
 
 
+# Create Transit Gateway
+resource "aws_ec2_transit_gateway" "transit_gateway" {
+  count                           = var.create_TransitGateway ? 1 : 0
+  description                     = "Transit Gateway"
+  auto_accept_shared_attachments  = "enable"
+  default_route_table_association = "enable"
+  default_route_table_propagation = "enable"
+  dns_support                     = "enable"
+
+  tags = {
+    Name = "${var.environment_Name}-tgw"
+  }
+
+}
+
+resource "aws_ec2_transit_gateway_vpc_attachment" "transit_gateway_attachment" {
+  count              = var.create_TransitGateway ? 1 : 0
+  depends_on         = [aws_subnet.private_subnets]
+  subnet_ids         = aws_subnet.private_subnets[*].id
+  vpc_id             = aws_vpc.vpc.id
+  transit_gateway_id = aws_ec2_transit_gateway.transit_gateway[0].id
+  tags = {
+    Name = "${var.environment_Name}-tgw-attachment"
+  }
+}
 
 
+# Create Public and Private Route Tables
+resource "aws_route_table" "public_route_table" {
+  count  = var.public_Subnets != 0 ? 1 : 0
+  vpc_id = aws_vpc.vpc.id
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.igw[0].id
+  }
+  tags = {
+    Name = "${var.environment_Name}-public-route-table"
+  }
+}
+
+resource "aws_route_table" "private_route_tables" {
+  count  = var.private_Subnets != 0 ? var.private_Subnets : 0
+  vpc_id = aws_vpc.vpc.id
+
+  tags = {
+    Name = "${var.environment_Name}-private-route-table-${count.index + 1}"
+  }
+}
 
 
+# Create Public Subnets Route Table Association
+resource "aws_route_table_association" "public_subnets_route_table_association" {
+  count          = var.public_Subnets
+  subnet_id      = aws_subnet.public_subnets[count.index].id
+  route_table_id = aws_route_table.public_route_table[0].id
+}
+
+# Create Private Subnets Route Tables Association
+resource "aws_route_table_association" "private_subnets_route_table_association" {
+  count          = var.private_Subnets
+  subnet_id      = aws_subnet.private_subnets[count.index].id
+  route_table_id = aws_route_table.private_route_tables[count.index].id
+}
 
 
+# Create routes to Nat Gateway or Transit Gateway
+resource "aws_route" "route_to_nat_gateway" {
+  count                  = var.create_NatGateway_1AZ || var.create_NatGateway_1perAZ ? var.private_Subnets : 0
+  route_table_id         = aws_route_table.private_route_tables[count.index].id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = var.create_NatGateway_1AZ ? aws_nat_gateway.nat_gateway_1AZ[0].id : var.create_NatGateway_1perAZ ? aws_nat_gateway.nat_gateway_1perAZ[count.index % var.availability_Zones].id : 0
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-# #Create Private Subnets
-# resource "aws_subnet" "private_subnets" {
-#     count                   = var.subnetsCount
-#     depends_on              = [aws_vpc.vpc]
-#     vpc_id                  = aws_vpc.vpc.id
-#     cidr_block              = element(var.private_subnet_CIDRs, count)
-#     map_public_ip_on_launch = "false"
-#     availability_zone       = data.aws_availability_zones.available.names[count]
-#     tags = {
-#         Name                = "${var.environmentName}-PrivateSubnet${count + 1}"
-#     }
-# }
-
-# #Create Private Subnet 2
-# resource "aws_subnet" "PrivateSubnet2" {
-#     depends_on              = [aws_vpc.vpc]
-#     vpc_id                  = aws_vpc.vpc.id
-#     cidr_block              = var.private_subnet_2_CIDR
-#     map_public_ip_on_launch = "false"
-#     availability_zone       = data.aws_availability_zones.available.names[1]
-#     tags = {
-#         Name                = "${var.environmentName}-PrivateSubnet2"
-#     }
-# }
-
-# #Create Reserved Subnet
-# resource "aws_subnet" "ReservedSubnet" {
-#     depends_on              = [aws_vpc.vpc]
-#     vpc_id                  = aws_vpc.vpc.id
-#     cidr_block              = var.reserved_subnet_CIDR
-#     map_public_ip_on_launch = var.create_igw
-#     availability_zone       = data.aws_availability_zones.available.names[2]
-#     tags = {
-#         Name                = "${var.environmentName}-ReservedSubnet"
-#     }
-# }
-
-# # Create Internet Gateway (Optional)
-# resource "aws_internet_gateway" "igw" {
-#     count = var.create_igw ? 1 : 0
-#     depends_on              = [aws_vpc.vpc]
-#     vpc_id                  = aws_vpc.vpc.id
-#     tags = {
-#         Name                = "${var.environmentName}-igw"
-#     }
-# }
-
-# # Create Transit Gateway Attachment
-# resource "aws_ec2_transit_gateway_vpc_attachment" "TransitGatewayAttachment" {
-#     count = var.create_transit_gateway_attachment ? 1 : 0
-#     depends_on              = [aws_subnet.PrivateSubnet1, aws_subnet.PrivateSubnet2]
-#     subnet_ids              = [aws_subnet.PrivateSubnet1.id, aws_subnet.PrivateSubnet2.id]
-#     transit_gateway_id      = var.transit_gateway_ID
-#     vpc_id                  = aws_vpc.vpc.id
-#     tags = {
-#         Name                = "${var.environmentName}-transit-attachment"
-#     }
-# }
-
-# # Create Private Route Table
-# resource "aws_route_table" "PrivateRouteTable" {
-#     depends_on              = [aws_vpc.vpc]
-#     vpc_id                  = aws_vpc.vpc.id
-#     tags = {
-#         Name                = "${var.environmentName}-PrivateRouteTable"
-#     }
-# }
-
-# # Create Reserved Route Table
-# resource "aws_route_table" "ReservedRouteTable" {
-#     depends_on              = [aws_vpc.vpc]
-#     vpc_id                  = aws_vpc.vpc.id
-#     tags = {
-#         Name                = "${var.environmentName}-ReservedRouteTable"
-#     }
-# }
-
-# # Create Private Subnet 1 Route Table Association
-# resource "aws_route_table_association" "PrivateSubnet1RouteTableAssociation"{
-#     depends_on              = [aws_subnet.PrivateSubnet1, aws_route_table.PrivateRouteTable]
-#     subnet_id               = aws_subnet.PrivateSubnet1.id
-#     route_table_id          = aws_route_table.PrivateRouteTable.id
-# }
-
-# # Create Private Subnet 2 Route Table Association
-# resource "aws_route_table_association" "PrivateSubnet2RouteTableAssociation"{
-#     depends_on              = [aws_subnet.PrivateSubnet2, aws_route_table.PrivateRouteTable]
-#     subnet_id               = aws_subnet.PrivateSubnet2.id
-#     route_table_id          = aws_route_table.PrivateRouteTable.id
-# }
-
-# # Create Reserved Subnet Route Table Association
-# resource "aws_route_table_association" "ReservedSubnetRouteTableAssociation"{
-#     depends_on              = [aws_subnet.ReservedSubnet, aws_route_table.ReservedRouteTable]
-#     subnet_id               = aws_subnet.ReservedSubnet.id
-#     route_table_id          = aws_route_table.ReservedRouteTable.id
-# }
-
-# # Create Route To Transit Gateway
-# resource "aws_route" "RouteToTransitGateway" {
-#     count = var.create_transit_gateway_attachment ? 1 : 0
-#     depends_on              = [aws_route_table.PrivateRouteTable]
-#     route_table_id          = aws_route_table.PrivateRouteTable.id
-#     destination_cidr_block  = "0.0.0.0/0"
-#     transit_gateway_id      = var.transit_gateway_ID
-# }
-
-# # Create Route To Internet Gateway (Optional)
-# resource "aws_route" "RouteToInternetGateway" {
-#     count                     = var.create_igw ? 1 : 0
-#     depends_on                = [aws_route_table.ReservedRouteTable]
-#     route_table_id            = aws_route_table.ReservedRouteTable.id
-#     destination_cidr_block    = "0.0.0.0/0"
-#     gateway_id                = aws_internet_gateway.igw[0].id
-# }
+resource "aws_route" "route_to_transit_gateway" {
+  count                  = var.create_TransitGateway ? var.private_Subnets : 0
+  depends_on             = [aws_ec2_transit_gateway_vpc_attachment.transit_gateway_attachment]
+  route_table_id         = aws_route_table.private_route_tables[count.index].id
+  destination_cidr_block = var.route_TransitGateway
+  transit_gateway_id     = aws_ec2_transit_gateway.transit_gateway[0].id
+}
