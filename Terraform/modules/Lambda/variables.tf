@@ -1,15 +1,15 @@
 variable "environmentName" {
-	type    = string
+  type = string
 }
 
 variable "PrivateSubnet1_id" {
-	type    = string
+  type = string
 }
 
 variable "PrivateSubnet2_id" {
-	type    = string
+  type = string
 }
 
 variable "LambdaSecurityGroup_id" {
-	type    = string
+  type = string
 }

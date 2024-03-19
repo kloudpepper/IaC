@@ -1,19 +1,19 @@
 variable "environmentName" {
-	type    = string
+  type = string
 }
 
 variable "PrivateSubnet1_id" {
-	type    = string
+  type = string
 }
 
 variable "PrivateSubnet2_id" {
-	type    = string
+  type = string
 }
 
 variable "RDSSecurityGroup_id" {
-	type    = string
+  type = string
 }
 
 variable "snapshot_ARN" {
-	type    = string
+  type = string
 }

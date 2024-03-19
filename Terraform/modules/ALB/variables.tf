@@ -1,23 +1,23 @@
 variable "environmentName" {
-	type    = string
+  type = string
 }
 
 variable "vpc_id" {
-	type 	= string
+  type = string
 }
 
 variable "PrivateSubnet1_id" {
-	type    = string
+  type = string
 }
 
 variable "PrivateSubnet2_id" {
-	type    = string
+  type = string
 }
 
 variable "ALBSecurityGroup_id" {
-	type    = string
+  type = string
 }
 
 variable "certificate_ARN" {
-	type    = string
+  type = string
 }

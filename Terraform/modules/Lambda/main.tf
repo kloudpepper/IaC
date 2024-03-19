@@ -4,7 +4,7 @@
 
 ### Roles ###
 resource "aws_iam_role" "LambdaRoleExporter" {
-  name = "LambdaRoleExporter-${var.environmentName}"
+  name               = "LambdaRoleExporter-${var.environmentName}"
   assume_role_policy = <<EOF
   {
     "Version": "2012-10-17",
@@ -23,12 +23,12 @@ resource "aws_iam_role" "LambdaRoleExporter" {
     "arn:aws:iam::aws:policy/CloudWatchFullAccess",
     "arn:aws:iam::aws:policy/AmazonECS_FullAccess",
     "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
-    ]
+  ]
   path = "/"
 }
 
 resource "aws_iam_role" "LambdaRoleMonitoring" {
-  name = "LambdaRoleMonitoring-${var.environmentName}"
+  name               = "LambdaRoleMonitoring-${var.environmentName}"
   assume_role_policy = <<EOF
   {
     "Version": "2012-10-17",
@@ -48,12 +48,12 @@ resource "aws_iam_role" "LambdaRoleMonitoring" {
     "arn:aws:iam::aws:policy/CloudWatchFullAccess",
     "arn:aws:iam::aws:policy/AmazonECS_FullAccess",
     "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
-    ]
+  ]
   path = "/"
 }
 
 resource "aws_iam_role" "LambdaRoleWarmUp" {
-  name = "LambdaRoleWarmUp-${var.environmentName}"
+  name               = "LambdaRoleWarmUp-${var.environmentName}"
   assume_role_policy = <<EOF
   {
     "Version": "2012-10-17",
@@ -72,42 +72,42 @@ resource "aws_iam_role" "LambdaRoleWarmUp" {
     "arn:aws:iam::aws:policy/CloudWatchFullAccess",
     "arn:aws:iam::aws:policy/AmazonECS_FullAccess",
     "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
-    ]
+  ]
   path = "/"
 }
 
 resource "aws_lambda_function" "LambdaFunctionExporter" {
   function_name = "${var.environmentName}-Exporter"
-  handler = "lambda_function.lambda_handler"
+  handler       = "lambda_function.lambda_handler"
   architectures = [
-      "x86_64"
+    "x86_64"
   ]
-  s3_bucket = "cf-templates-corebancario-main"
-  s3_key = "Lambda/lambda-exporter.zip"
+  s3_bucket   = "cf-templates-corebancario-main"
+  s3_key      = "Lambda/lambda-exporter.zip"
   memory_size = 128
-  role = aws_iam_role.LambdaRoleExporter.arn
-  runtime = "python3.7"
-  timeout = 90
+  role        = aws_iam_role.LambdaRoleExporter.arn
+  runtime     = "python3.7"
+  timeout     = 90
   vpc_config {
-    subnet_ids = [var.PrivateSubnet1_id,var.PrivateSubnet2_id]
+    subnet_ids         = [var.PrivateSubnet1_id, var.PrivateSubnet2_id]
     security_group_ids = [var.LambdaSecurityGroup_id]
   }
   environment {
     variables = {
-      REQUESTURL = "https://${var.environmentName}.corebancario-diners.com/irf-provider-container/api/v1.0.0/system/metrics/elasticity/agents/itemCount"
-      THRESHOLD = "12"
+      REQUESTURL         = "https://${var.environmentName}.corebancario-diners.com/irf-provider-container/api/v1.0.0/system/metrics/elasticity/agents/itemCount"
+      THRESHOLD          = "12"
       PROVISIONINGFACTOR = "1"
-      IRISUSER = "T24IRISINPUTT"
-      IRISPASSWORD = "4$8e.Lhzb6yWvJF("
-      RESOURCEID = "service/${var.environmentName}-cluster/${var.environmentName}-batch"
+      IRISUSER           = "T24IRISINPUTT"
+      IRISPASSWORD       = "4$8e.Lhzb6yWvJF("
+      RESOURCEID         = "service/${var.environmentName}-cluster/${var.environmentName}-batch"
     }
   }
 }
 
 resource "aws_cloudwatch_event_rule" "EventRuleExporter" {
-  name = "${var.environmentName}-Exporter-rule"
+  name                = "${var.environmentName}-Exporter-rule"
   schedule_expression = "rate(1 minute)"
-  is_enabled = true
+  is_enabled          = true
 }
 
 resource "aws_cloudwatch_event_target" "EventTargetExporter" {
@@ -117,8 +117,8 @@ resource "aws_cloudwatch_event_target" "EventTargetExporter" {
 }
 
 resource "aws_lambda_permission" "EventRulePermissionExporter" {
-  action = "lambda:InvokeFunction"
+  action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.LambdaFunctionExporter.arn
-  principal = "events.amazonaws.com"
-  source_arn = aws_cloudwatch_event_rule.EventRuleExporter.arn
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.EventRuleExporter.arn
 }

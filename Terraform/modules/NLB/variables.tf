@@ -1,19 +1,19 @@
 variable "environmentName" {
-	type 	= string
+  type = string
 }
 
 variable "vpc_id" {
-	type 	= string
+  type = string
 }
 
 variable "PrivateSubnet1_id" {
-	type 	= string
+  type = string
 }
 
 variable "PrivateSubnet2_id" {
-	type 	= string
+  type = string
 }
 
 variable "ip_nat_IIB_onpremise" {
-	type    = string
+  type = string
 }

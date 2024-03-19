@@ -1,13 +1,13 @@
 variable "environment_Name" {
-  type    = string
+  type = string
 }
 
 variable "vpc_CIDR" {
-  type    = string
+  type = string
 }
 
 variable "availability_Zones" {
-  type    = number
+  type = number
 }
 
 variable "public_Subnets" {
@@ -21,17 +21,17 @@ variable "private_Subnets" {
 }
 
 variable "create_NatGateway_1AZ" {
-  type        = bool
+  type = bool
 }
 
 variable "create_NatGateway_1perAZ" {
-  type        = bool
+  type = bool
 }
 
 variable "create_TransitGateway" {
-  type        = bool
+  type = bool
 }
 
 variable "route_TransitGateway" {
-  type        = string
+  type = string
 }

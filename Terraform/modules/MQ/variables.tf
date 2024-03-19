@@ -1,19 +1,19 @@
 variable "environmentName" {
-	type    = string
+  type = string
 }
 
 variable "PrivateSubnet1_id" {
-	type    = string
+  type = string
 }
 
 variable "MQSecurityGroup_id" {
-	type    = string
+  type = string
 }
 
 variable "MQUser" {
-	type    = string
+  type = string
 }
 
 variable "MQPassword" {
-	type    = string
+  type = string
 }

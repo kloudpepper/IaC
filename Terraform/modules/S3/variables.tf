@@ -1,3 +1,3 @@
 variable "environmentName" {
-	type 	= string
+  type = string
 }
