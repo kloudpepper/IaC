@@ -1,4 +1,4 @@
-variable "environmentName" {
+variable "environment_Name" {
 	type    = string
 }
 
@@ -7,5 +7,13 @@ variable "vpc_CIDR" {
 }
 
 variable "vpc_id" {
+	type 	= string
+}
+
+variable "public_subnet_ids" {
+	type 	= string
+}
+
+variable "private_subnet_ids" {
 	type 	= string
 }
