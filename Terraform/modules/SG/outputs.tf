@@ -1,39 +1,19 @@
-output "LambdaSecurityGroup_id" {
-  description = "Lambda Security Group ID"
-  value       = aws_security_group.LambdaSecurityGroup.id
+output "alb_sg_id" {
+  value = aws_security_group.alb_sg.id
 }
 
-output "SFTPSecurityGroup_id" {
-  description = "SFTP Security Group ID"
-  value       = aws_security_group.SFTPSecurityGroup.id
+output "eks_sg_id" {
+  value = aws_security_group.eks_sg.id
 }
 
-output "ALBSecurityGroup_id" {
-  description = "ALB Security Group ID"
-  value       = aws_security_group.ALBSecurityGroup.id
+output "mq_sg_id" {
+  value = aws_security_group.mq_sg.id
 }
 
-output "ECSSecurityGroup_id" {
-  description = "ECS Security Group ID"
-  value       = aws_security_group.ECSSecurityGroup.id
+output "rds_sg_id" {
+  value = aws_security_group.rds_sg.id
 }
 
-output "MQSecurityGroup_id" {
-  description = "MQ Security Group ID"
-  value       = aws_security_group.MQSecurityGroup.id
-}
-
-output "RDSSecurityGroup_id" {
-  description = "RDS Security Group ID"
-  value       = aws_security_group.RDSSecurityGroup.id
-}
-
-output "EFSSecurityGroup_id" {
-  description = "EFS Security Group ID"
-  value       = aws_security_group.EFSSecurityGroup.id
-}
-
-output "VPCEnpointSecurityGroup_id" {
-  description = "VPC Enpoints Security Group ID"
-  value       = aws_security_group.VPCEnpointSecurityGroup.id
+output "vpc_endpoint_sg_id" {
+  value = aws_security_group.vpc_endpoint_sg.id
 }

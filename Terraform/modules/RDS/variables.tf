@@ -1,16 +1,13 @@
-variable "environmentName" {
+variable "environment_Name" {
   type = string
 }
 
-variable "PrivateSubnet1_id" {
-  type = string
+variable "private_subnet_ids" {
+  type    = list(string)
+  default = []
 }
 
-variable "PrivateSubnet2_id" {
-  type = string
-}
-
-variable "RDSSecurityGroup_id" {
+variable "rds_sg_id" {
   type = string
 }
 

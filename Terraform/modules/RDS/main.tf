@@ -3,11 +3,11 @@
 ##################
 
 resource "aws_db_subnet_group" "RDSsubnetgroup" {
-  name        = "${var.environmentName}-subnetgroup"
+  name        = "${var.environment_Name}-subnetgroup"
   description = "Subnet Group para la base de datos RDS - 2 subredes"
-  subnet_ids  = [var.PrivateSubnet1_id, var.PrivateSubnet2_id]
+  subnet_ids  = var.private_subnet_ids
   tags = {
-    "Name" = "${var.environmentName}-subnetgroup"
+    "Name" = "${var.environment_Name}-subnetgroup"
   }
 }
 
@@ -36,8 +36,8 @@ resource "aws_db_subnet_group" "RDSsubnetgroup" {
 } */
 
 resource "aws_db_parameter_group" "RDSparametergroup" {
-  name        = "${var.environmentName}-parametergroup"
-  description = "${var.environmentName}-oracle-19"
+  name        = "${var.environment_Name}-parametergroup"
+  description = "${var.environment_Name}-oracle-19"
   family      = "oracle-ee-19"
   parameter {
     name  = "control_management_pack_access"
@@ -48,12 +48,12 @@ resource "aws_db_parameter_group" "RDSparametergroup" {
     value = "TRUE"
   }
   tags = {
-    "Name" = "${var.environmentName}-parametergroup"
+    "Name" = "${var.environment_Name}-parametergroup"
   }
 }
 
 resource "aws_db_instance" "RDSInstance" {
-  identifier = "${var.environmentName}-db"
+  identifier = "${var.environment_Name}-db"
   engine     = "oracle-ee"
   #engine_version          = "19.0.0.0.ru-2022-07.rur-2022-07.r1"
   instance_class = "db.r5.large"
@@ -63,9 +63,9 @@ resource "aws_db_instance" "RDSInstance" {
   #iops                   = 1000
   db_name                = "ORCL4"
   port                   = 5960
-  vpc_security_group_ids = [var.RDSSecurityGroup_id]
-  db_subnet_group_name   = "${var.environmentName}-subnetgroup"
-  parameter_group_name   = "${var.environmentName}-parametergroup"
+  vpc_security_group_ids = [var.rds_sg_id]
+  db_subnet_group_name   = "${var.environment_Name}-subnetgroup"
+  parameter_group_name   = "${var.environment_Name}-parametergroup"
   #option_group_name      = "${var.environmentName}-optiongroup"
   multi_az                   = false
   publicly_accessible        = false

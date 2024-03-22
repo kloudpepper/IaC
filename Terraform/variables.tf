@@ -65,45 +65,11 @@ variable "route_TransitGateway" {
   description = "Add route to Transit Gateway. It should be to connect to another VPC or VPN (on-premises)"
 }
 
-
-
-
-
-
-
-# variable "certificate_ARN" {
-#   type = string
-# }
-
-# variable "snapshot_ARN" {
-#   type = string
-# }
-
-# variable "MQUser" {
-#   type = string
-# }
-
-# variable "MQPassword" {
-#   type = string
-# }
+variable "snapshot_ARN" {
+  type = string
+}
 
 # variable "ImageUrlWeb" {
-#   type = string
-# }
-
-# variable "ImageUrlDev" {
-#   type = string
-# }
-
-# variable "ImageUrlDevL3" {
-#   type = string
-# }
-
-# variable "ImageUrlTCUA" {
-#   type = string
-# }
-
-# variable "ImageUrlBFL" {
 #   type = string
 # }
 
@@ -111,74 +77,11 @@ variable "route_TransitGateway" {
 #   type = string
 # }
 
-# variable "ImageUrlBatch" {
-#   type = string
-# }
-
 # variable "DesiredCount" {
 #   type = number
 # }
 
-
-
-
-# ### NEW
-# variable "aws_Region" {
-#   type = string
-# }
-
-# variable "VPC_id" {
-#   type = string
-# }
-
-# variable "PrivateSubnet1_id" {
-#   type = string
-# }
-
-# variable "PrivateSubnet2_id" {
-#   type = string
-# }
-
-# variable "ALBSecurityGroup_id" {
-#   type = string
-# }
-# variable "ALB_name" {
-#   type = string
-# }
-
-# variable "ALB_port" {
-#   type = string
-# }
-
-# variable "ALB_protocol" {
-#   type = string
-# }
-
-# variable "CERTIFICATE_arn" {
-#   type = string
-# }
-
-# variable "Stickiness" {
-#   type = bool
-# }
-
-# variable "TG_port" {
-#   type = string
-# }
-
-# variable "TG_protocol" {
-#   type = string
-# }
-
-# variable "INSTANCES_id" {
-#   type = list(string)
-# }
-
-# variable "Env" {
-#   type = string
-# }
-
-# variable "region" {
+# variable "regions" {
 #   type = map(string)
 #   default = {
 #     us-east-1      = "use1"

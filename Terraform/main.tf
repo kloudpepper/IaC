@@ -32,40 +32,38 @@ module "NACL" {
   private_subnet_ids = module.VPC.private_subnet_ids
 }
 
+module "SG" {
+  source           = "./modules/SG"
+  environment_Name = var.environment_Name
+  vpc_CIDR         = var.vpc_CIDR
+  vpc_id           = module.VPC.vpc_id
+}
 
-# module "SG" {
-#   source          = "./modules/SG"
-#   environmentName = var.environment_Name
-#   vpc_CIDR        = var.vpc_CIDR
-#   vpc_id          = module.VPC.vpc_id
-# }
+module "VPCEndpoints" {
+  source                  = "./modules/VPCEndpoints"
+  aws_Region              = var.aws_Region
+  environment_Name        = var.environment_Name
+  vpc_id                  = module.VPC.vpc_id
+  private_subnet_ids      = module.VPC.private_subnet_ids
+  private_route_table_ids = module.VPC.private_route_table_ids
+  vpc_endpoint_sg_id      = module.SG.vpc_endpoint_sg_id
+  Services = [
+    "ssmmessages",
+    "monitoring",
+    "ecr.api",
+    "ecr.dkr",
+    "secretsmanager",
+    "logs"
+  ]
+}
 
-# module "VPCEndpoints" {
-#   source                     = "./modules/VPCEndpoints"
-#   aws_Region                 = var.aws_Region
-#   environment_Name           = var.environment_Name
-#   vpc_id                     = module.VPC.vpc_id
-#   private_subnet_ids         = module.VPC.private_subnet_ids
-#   private_route_table_ids    = module.VPC.private_route_table_ids
-#   VPCEnpointSecurityGroup_id = module.SG.VPCEnpointSecurityGroup_id
-#   Services = [
-#     "ssmmessages",
-#     "monitoring",
-#     "ecr.api",
-#     "ecr.dkr",
-#     "secretsmanager",
-#     "logs"
-#   ]
-# }
-
-# module "RDS" {
-#   source              = "./modules/RDS"
-#   environmentName     = var.environmentName
-#   PrivateSubnet1_id   = module.VPC.PrivateSubnet1_id
-#   PrivateSubnet2_id   = module.VPC.PrivateSubnet2_id
-#   RDSSecurityGroup_id = module.SG.RDSSecurityGroup_id
-#   snapshot_ARN        = var.snapshot_ARN
-# }
+module "RDS" {
+  source             = "./modules/RDS"
+  environment_Name   = var.environment_Name
+  private_subnet_ids = module.VPC.private_subnet_ids
+  rds_sg_id          = module.SG.rds_sg_id
+  snapshot_ARN       = var.snapshot_ARN
+}
 
 # module "MQ" {
 #   source             = "./modules/MQ"

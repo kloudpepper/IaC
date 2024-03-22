@@ -2,251 +2,114 @@
 ### Security Groups Module ###
 ##############################
 
-# Create Lambda Security Group
-resource "aws_security_group" "LambdaSecurityGroup" {
-  vpc_id      = var.vpc_id
-  name        = "${var.environmentName}-Lambda-SG"
-  description = "Lambda Security Group"
-
-  egress {
-    cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 0
-    to_port     = 0
-    protocol    = -1
-  }
-
-  tags = {
-    Name = "${var.environmentName}-Lambda-SG"
-  }
-}
-
-# Create SFTP Security Group
-resource "aws_security_group" "SFTPSecurityGroup" {
-  vpc_id      = var.vpc_id
-  name        = "${var.environmentName}-SFTP-SG"
-  description = "SFTP Security Group"
-
-  egress {
-    cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 0
-    to_port     = 0
-    protocol    = -1
-  }
-
-  ingress {
-    cidr_blocks = ["10.1.146.247/32"]
-    description = "from Bastion Kyndryl"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-  }
-
-  tags = {
-    Name = "${var.environmentName}-SFTP-SG"
+locals {
+  ports = {
+    http     = 80
+    https    = 443
+    mq       = 61617
+    postgres = 5432
   }
 }
 
 # Create ALB Security Group
-resource "aws_security_group" "ALBSecurityGroup" {
-  depends_on  = [aws_security_group.LambdaSecurityGroup]
+resource "aws_security_group" "alb_sg" {
   vpc_id      = var.vpc_id
-  name        = "${var.environmentName}-ALB-SG"
+  name        = "${var.environment_Name}-ALB-SG"
   description = "ALB Security Group"
 
-  egress {
+  ingress {
     cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 0
-    to_port     = 0
-    protocol    = -1
-  }
-
-  ingress {
-    cidr_blocks = ["10.1.146.247/32"]
-    description = "from Bastion Kyndryl"
-    from_port   = 443
-    to_port     = 443
+    description = ""
+    from_port   = local.ports.http
+    to_port     = local.ports.http
     protocol    = "tcp"
   }
 
   ingress {
-    cidr_blocks = ["10.1.155.146/32"]
-    description = "from Bastion ATOMA"
-    from_port   = 443
-    to_port     = 443
+    cidr_blocks = ["0.0.0.0/0"]
+    description = ""
+    from_port   = local.ports.https
+    to_port     = local.ports.https
     protocol    = "tcp"
-  }
-
-  ingress {
-    security_groups = [aws_security_group.LambdaSecurityGroup.id]
-    description     = "from Lambdas"
-    from_port       = 443
-    to_port         = 443
-    protocol        = "tcp"
   }
 
   tags = {
-    Name = "${var.environmentName}-ALB-SG"
+    Name = "${var.environment_Name}-ALB-SG"
   }
 }
 
-# Create ECS Security Group
-resource "aws_security_group" "ECSSecurityGroup" {
+# Create EKS Security Group
+resource "aws_security_group" "eks_sg" {
   vpc_id      = var.vpc_id
-  name        = "${var.environmentName}-ECS-SG"
-  description = "ECS Security Group"
-
-  egress {
-    cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 0
-    to_port     = 0
-    protocol    = -1
-  }
+  name        = "${var.environment_Name}-EKS-SG"
+  description = "EKS Security Group"
 
   ingress {
-    security_groups = [aws_security_group.ALBSecurityGroup.id]
-    description     = "from ALB"
-    from_port       = 8443
-    to_port         = 8443
+    security_groups = [aws_security_group.alb_sg.id]
+    description     = ""
+    from_port       = local.ports.http
+    to_port         = local.ports.http
     protocol        = "tcp"
   }
 
-  ingress {
-    cidr_blocks = ["10.1.146.247/32"]
-    description = "from Bastion Kyndryl"
-    from_port   = 8443
-    to_port     = 8443
-    protocol    = "tcp"
-  }
-
   tags = {
-    Name = "${var.environmentName}-ECS-SG"
+    Name = "${var.environment_Name}-EKS-SG"
   }
 }
 
 # Create MQ Security Group
-resource "aws_security_group" "MQSecurityGroup" {
+resource "aws_security_group" "mq_sg" {
   vpc_id      = var.vpc_id
-  name        = "${var.environmentName}-MQ-SG"
+  name        = "${var.environment_Name}-MQ-SG"
   description = "MQ Security Group"
 
-  egress {
-    cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 0
-    to_port     = 0
-    protocol    = -1
-  }
-
   ingress {
-    security_groups = [aws_security_group.ECSSecurityGroup.id]
-    description     = "from ECS"
-    from_port       = 61617
-    to_port         = 61617
+    security_groups = [aws_security_group.eks_sg.id]
+    description     = ""
+    from_port       = local.ports.mq
+    to_port         = local.ports.mq
     protocol        = "tcp"
   }
 
-  ingress {
-    cidr_blocks = ["10.1.146.247/32"]
-    description = "from Bastion Kyndryl"
-    from_port   = 61617
-    to_port     = 61617
-    protocol    = "tcp"
-  }
-
   tags = {
-    Name = "${var.environmentName}-MQ-SG"
+    Name = "${var.environment_Name}-MQ-SG"
   }
 }
 
 # Create RDS Security Group
-resource "aws_security_group" "RDSSecurityGroup" {
+resource "aws_security_group" "rds_sg" {
   vpc_id      = var.vpc_id
-  name        = "${var.environmentName}-RDS-SG"
+  name        = "${var.environment_Name}-RDS-SG"
   description = "RDS Security Group"
 
-  egress {
-    cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 0
-    to_port     = 0
-    protocol    = -1
-  }
-
   ingress {
-    security_groups = [aws_security_group.ECSSecurityGroup.id]
-    description     = "from ECS"
-    from_port       = 5960
-    to_port         = 5960
+    security_groups = [aws_security_group.eks_sg.id]
+    description     = ""
+    from_port       = local.ports.postgres
+    to_port         = local.ports.postgres
     protocol        = "tcp"
   }
 
-  ingress {
-    cidr_blocks = ["10.1.146.247/32"]
-    description = "from Bastion Kyndryl"
-    from_port   = 5960
-    to_port     = 5960
-    protocol    = "tcp"
-  }
-
   tags = {
-    Name = "${var.environmentName}-RDS-SG"
-  }
-}
-
-# Create EFS Security Group
-resource "aws_security_group" "EFSSecurityGroup" {
-  vpc_id      = var.vpc_id
-  name        = "${var.environmentName}-EFS-SG"
-  description = "EFS Security Group"
-
-  egress {
-    cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 0
-    to_port     = 0
-    protocol    = -1
-  }
-
-  ingress {
-    security_groups = [aws_security_group.ECSSecurityGroup.id]
-    description     = "from ECS"
-    from_port       = 2049
-    to_port         = 2049
-    protocol        = "tcp"
-  }
-
-  ingress {
-    cidr_blocks = ["10.1.146.247/32"]
-    description = "from Bastion Kyndryl"
-    from_port   = 2049
-    to_port     = 2049
-    protocol    = "tcp"
-  }
-
-  tags = {
-    Name = "${var.environmentName}-EFS-SG"
+    Name = "${var.environment_Name}-RDS-SG"
   }
 }
 
 # Create VPC Endpoints Security Group
-resource "aws_security_group" "VPCEnpointSecurityGroup" {
+resource "aws_security_group" "vpc_endpoint_sg" {
   vpc_id      = var.vpc_id
-  name        = "${var.environmentName}-VPCEndpoints-SG"
+  name        = "${var.environment_Name}-VPCEndpoints-SG"
   description = "VPC Endpoints Security Group"
-
-  egress {
-    cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 0
-    to_port     = 0
-    protocol    = -1
-  }
 
   ingress {
     cidr_blocks = [var.vpc_CIDR]
-    description = "from VPC"
-    from_port   = 443
-    to_port     = 443
+    description = ""
+    from_port   = local.ports.https
+    to_port     = local.ports.https
     protocol    = "tcp"
   }
 
   tags = {
-    Name = "${var.environmentName}-VPCEndpoints-SG"
+    Name = "${var.environment_Name}-VPCEndpoints-SG"
   }
 }

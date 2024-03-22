@@ -1,6 +1,6 @@
-############
-### NACL ###
-############
+###################
+### NACL Module ###
+###################
 
 # Create NACL
 resource "aws_network_acl" "public_nacl" {

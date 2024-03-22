@@ -1,4 +1,4 @@
-variable "environmentName" {
+variable "environment_Name" {
   type = string
 }
 

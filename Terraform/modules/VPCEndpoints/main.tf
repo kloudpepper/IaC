@@ -17,31 +17,31 @@ locals {
 }
 
 # Create Interface VPC Endpoint
-resource "aws_vpc_endpoint" "InterfaceVPCEndpoint" {
+resource "aws_vpc_endpoint" "aws_vpc_endpoint_interface" {
   for_each = local.InterfaceVPCEndpoint
 
   vpc_id              = var.vpc_id
-  service_name        = "com.amazonaws.${var.region}.${each.value}"
+  service_name        = "com.amazonaws.${var.aws_Region}.${each.value}"
   vpc_endpoint_type   = "Interface"
-  security_group_ids  = [var.VPCEnpointSecurityGroup_id]
-  subnet_ids          = [var.PrivateSubnet1_id, var.PrivateSubnet2_id]
+  security_group_ids  = [var.vpc_endpoint_sg_id]
+  subnet_ids          = var.private_subnet_ids
   private_dns_enabled = true
 
   tags = {
-    Name = "${var.environmentName}-endpoint-${each.value}"
+    Name = "${var.environment_Name}-endpoint-${each.value}"
   }
 }
 
 # Create Gateway VPC Endpoint
-resource "aws_vpc_endpoint" "GatewayVPCEndpoint" {
+resource "aws_vpc_endpoint" "aws_vpc_endpoint_gateway" {
   for_each = local.GatewayVPCEndpoint
 
   vpc_id            = var.vpc_id
-  service_name      = "com.amazonaws.${var.region}.${each.value}"
+  service_name      = "com.amazonaws.${var.aws_Region}.${each.value}"
   vpc_endpoint_type = "Gateway"
-  route_table_ids   = [var.PrivateRouteTable_id]
+  route_table_ids   = var.private_route_table_ids
 
   tags = {
-    Name = "${var.environmentName}-endpoint-${each.value}"
+    Name = "${var.environment_Name}-endpoint-${each.value}"
   }
 }

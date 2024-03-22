@@ -1,8 +1,8 @@
-variable "region" {
+variable "aws_Region" {
   type = string
 }
 
-variable "environmentName" {
+variable "environment_Name" {
   type = string
 }
 
@@ -10,19 +10,17 @@ variable "vpc_id" {
   type = string
 }
 
-variable "PrivateSubnet1_id" {
-  type = string
+variable "private_subnet_ids" {
+  type    = list(string)
+  default = []
 }
 
-variable "PrivateSubnet2_id" {
-  type = string
+variable "private_route_table_ids" {
+  type    = list(string)
+  default = []
 }
 
-variable "PrivateRouteTable_id" {
-  type = string
-}
-
-variable "VPCEnpointSecurityGroup_id" {
+variable "vpc_endpoint_sg_id" {
   type = string
 }
 
