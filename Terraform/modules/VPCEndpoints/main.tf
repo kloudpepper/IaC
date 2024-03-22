@@ -7,7 +7,7 @@ locals {
 
   InterfaceVPCEndpoint = toset([
     for service in var.Services :
-    service if !contains(local.gateway_services, service)
+    service if ! contains(local.gateway_services, service)
   ])
 
   GatewayVPCEndpoint = setintersection(var.Services, local.gateway_services)
@@ -17,7 +17,7 @@ locals {
 }
 
 # Create Interface VPC Endpoint
-resource "aws_vpc_endpoint" "aws_vpc_endpoint_interface" {
+resource "aws_vpc_endpoint" "InterfaceVPCEndpoint" {
   for_each = local.InterfaceVPCEndpoint
 
   vpc_id              = var.vpc_id
@@ -28,12 +28,12 @@ resource "aws_vpc_endpoint" "aws_vpc_endpoint_interface" {
   private_dns_enabled = true
 
   tags = {
-    Name = "${var.environment_Name}-endpoint-${each.value}"
-  }
+        Name          = "${var.environment_Name}-endpoint-${each.value}"
+    }
 }
 
 # Create Gateway VPC Endpoint
-resource "aws_vpc_endpoint" "aws_vpc_endpoint_gateway" {
+resource "aws_vpc_endpoint" "GatewayVPCEndpoint" {
   for_each = local.GatewayVPCEndpoint
 
   vpc_id            = var.vpc_id
@@ -42,6 +42,6 @@ resource "aws_vpc_endpoint" "aws_vpc_endpoint_gateway" {
   route_table_ids   = var.private_route_table_ids
 
   tags = {
-    Name = "${var.environment_Name}-endpoint-${each.value}"
-  }
+        Name          = "${var.environment_Name}-endpoint-${each.value}"
+    }
 }
