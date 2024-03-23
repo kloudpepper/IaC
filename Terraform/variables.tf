@@ -65,10 +65,6 @@ variable "route_TransitGateway" {
   description = "Add route to Transit Gateway. It should be to connect to another VPC or VPN (on-premises)"
 }
 
-variable "snapshot_ARN" {
-  type = string
-}
-
 # variable "ImageUrlWeb" {
 #   type = string
 # }

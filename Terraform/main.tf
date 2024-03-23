@@ -57,13 +57,12 @@ module "VPCEndpoints" {
   ]
 }
 
-# module "RDS" {
-#   source             = "./modules/RDS"
-#   environment_Name   = var.environment_Name
-#   private_subnet_ids = module.VPC.private_subnet_ids
-#   rds_sg_id          = module.SG.rds_sg_id
-#   snapshot_ARN       = var.snapshot_ARN
-# }
+module "RDS" {
+  source             = "./modules/RDS"
+  environment_Name   = var.environment_Name
+  private_subnet_ids = module.VPC.private_subnet_ids
+  rds_sg_id          = module.SG.rds_sg_id
+}
 
 # module "MQ" {
 #   source             = "./modules/MQ"

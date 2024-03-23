@@ -2,12 +2,11 @@ aws_Region               = "us-east-1"
 vpc_CIDR                 = "10.0.0.0/16"
 availability_Zones       = 2
 public_Subnets           = 2
-private_Subnets          = 2
+private_Subnets          = 4
 create_NatGateway_1AZ    = false
 create_NatGateway_1perAZ = false
 create_TransitGateway    = false
 route_TransitGateway     = ""
-snapshot_ARN             = ""
 
 # snapshot_ARN  = "arn:aws:rds:us-east-1:541719905654:snapshot:qa-sit-db-17112022"
 # MQUser        = "tafj"

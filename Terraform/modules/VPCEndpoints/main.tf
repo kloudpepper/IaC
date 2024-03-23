@@ -7,7 +7,7 @@ locals {
 
   InterfaceVPCEndpoint = toset([
     for service in var.Services :
-    service if ! contains(local.gateway_services, service)
+    service if !contains(local.gateway_services, service)
   ])
 
   GatewayVPCEndpoint = setintersection(var.Services, local.gateway_services)
@@ -24,12 +24,12 @@ resource "aws_vpc_endpoint" "InterfaceVPCEndpoint" {
   service_name        = "com.amazonaws.${var.aws_Region}.${each.value}"
   vpc_endpoint_type   = "Interface"
   security_group_ids  = [var.vpc_endpoint_sg_id]
-  subnet_ids          = var.private_subnet_ids
+  subnet_ids          = length(var.private_subnet_ids) > 2 ? slice(var.private_subnet_ids, 0, 2) : var.private_subnet_ids
   private_dns_enabled = true
 
   tags = {
-        Name          = "${var.environment_Name}-endpoint-${each.value}"
-    }
+    Name = "${var.environment_Name}-endpoint-${each.value}"
+  }
 }
 
 # Create Gateway VPC Endpoint
@@ -42,6 +42,6 @@ resource "aws_vpc_endpoint" "GatewayVPCEndpoint" {
   route_table_ids   = var.private_route_table_ids
 
   tags = {
-        Name          = "${var.environment_Name}-endpoint-${each.value}"
-    }
+    Name = "${var.environment_Name}-endpoint-${each.value}"
+  }
 }

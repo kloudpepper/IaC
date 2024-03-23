@@ -10,7 +10,3 @@ variable "private_subnet_ids" {
 variable "rds_sg_id" {
   type = string
 }
-
-variable "snapshot_ARN" {
-  type = string
-}
