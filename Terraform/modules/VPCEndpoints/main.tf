@@ -24,7 +24,7 @@ resource "aws_vpc_endpoint" "InterfaceVPCEndpoint" {
   service_name        = "com.amazonaws.${var.aws_Region}.${each.value}"
   vpc_endpoint_type   = "Interface"
   security_group_ids  = [var.vpc_endpoint_sg_id]
-  subnet_ids          = length(var.private_subnet_ids) > 2 ? slice(var.private_subnet_ids, 0, 2) : var.private_subnet_ids
+  subnet_ids          = length(var.private_subnet_ids) == 4 ? slice(var.private_subnet_ids, 0, 2) : length(var.private_subnet_ids) == 6 ? slice(var.private_subnet_ids, 0, 2, 4) : var.private_subnet_ids
   private_dns_enabled = true
 
   tags = {

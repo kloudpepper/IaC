@@ -1,24 +1,19 @@
-output "TargetGroupWEB_arn" {
-  description = "Exportar Target Group para el contenedor Web"
-  value       = aws_lb_target_group.TargetGroups[0].arn
+output "web_target_group_arn" {
+  description = ""
+  value       = aws_lb_target_group.target_group[0].arn
 }
 
-output "TargetGroupDEV_arn" {
-  description = "Exportar Target Group para el contenedor Dev"
-  value       = aws_lb_target_group.TargetGroups[1].arn
+output "app_target_group_arn" {
+  description = ""
+  value       = aws_lb_target_group.target_group[1].arn
 }
 
-output "TargetGroupDEVL3_arn" {
-  description = "Exportar Target Group para el contenedor DevL3"
-  value       = aws_lb_target_group.TargetGroups[2].arn
+output "alb_name" {
+  description = ""
+  value       = aws_lb.alb.dns_name
 }
 
-output "TargetGroupTCUA_arn" {
-  description = "Exportar Target Group para el contenedor TCUA"
-  value       = aws_lb_target_group.TargetGroups[3].arn
-}
-
-output "TargetGroupAPP_arn" {
-  description = "Exportar Target Group para el contenedor App"
-  value       = aws_lb_target_group.TargetGroups[4].arn
+output "alb_hosted_zone_id" {
+  description = ""
+  value       = aws_lb.alb.zone_id
 }

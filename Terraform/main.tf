@@ -57,12 +57,12 @@ module "VPCEndpoints" {
   ]
 }
 
-module "RDS" {
-  source             = "./modules/RDS"
-  environment_Name   = var.environment_Name
-  private_subnet_ids = module.VPC.private_subnet_ids
-  rds_sg_id          = module.SG.rds_sg_id
-}
+# module "RDS" {
+#   source             = "./modules/RDS"
+#   environment_Name   = var.environment_Name
+#   private_subnet_ids = module.VPC.private_subnet_ids
+#   rds_sg_id          = module.SG.rds_sg_id
+# }
 
 # module "MQ" {
 #   source             = "./modules/MQ"
@@ -74,13 +74,12 @@ module "RDS" {
 # }
 
 # module "ALB" {
-#   source              = "./modules/ALB"
-#   environmentName     = var.environmentName
-#   vpc_id              = module.VPC.vpc_id
-#   PrivateSubnet1_id   = module.VPC.PrivateSubnet1_id
-#   PrivateSubnet2_id   = module.VPC.PrivateSubnet2_id
-#   ALBSecurityGroup_id = module.SG.ALBSecurityGroup_id
-#   certificate_ARN     = var.certificate_ARN
+#   source             = "./modules/ALB"
+#   aws_Region         = var.aws_Region
+#   environment_Name   = var.environment_Name
+#   vpc_id             = module.VPC.vpc_id
+#   private_subnet_ids = module.VPC.private_subnet_ids
+#   alb_sg_id          = module.SG.alb_sg_id
 # }
 
 # module "Route53" {
