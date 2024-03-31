@@ -1,19 +1,12 @@
-variable "environmentName" {
+variable "environment_Name" {
   type = string
 }
 
-variable "PrivateSubnet1_id" {
-  type = string
+variable "private_subnet_ids" {
+  type    = list(string)
+  default = []
 }
 
-variable "MQSecurityGroup_id" {
-  type = string
-}
-
-variable "MQUser" {
-  type = string
-}
-
-variable "MQPassword" {
+variable "mq_sg_id" {
   type = string
 }

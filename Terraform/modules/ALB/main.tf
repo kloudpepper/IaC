@@ -100,7 +100,7 @@ resource "aws_lb_listener_rule" "rule_2" {
 
 # Create a S3 bucket for ALB access logs
 resource "aws_s3_bucket" "access_logs_bucket" {
-  bucket = "${var.environment_Name}-access-logs"
+  bucket        = "${var.environment_Name}-access-logs"
   force_destroy = true
   tags = {
     Name = "${var.environment_Name}-access-logs"

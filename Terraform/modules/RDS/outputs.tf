@@ -3,7 +3,7 @@ output "db_endpoint" {
   value       = aws_db_instance.postgres_db.endpoint
 }
 
-output "db_password_key_arn" {
-  description = "The ARN of the KMS key for the DB password"
-  value       = aws_kms_key.db_password.arn
+output "db_password_arn" {
+  description = "Secret ARN Password DB"
+  value       = aws_secretsmanager_secret.db_password.arn
 }
