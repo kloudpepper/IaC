@@ -75,8 +75,14 @@ resource "aws_mq_broker" "apache_mq" {
 
 
 # Create a KMS key -- MQ storage encryption
+resource "random_string" "random" {
+  length  = 4
+  special = false
+  upper   = false
+}
+
 resource "aws_kms_key" "mq_key" {
-  description             = "${var.environment_Name}/mq/apachemq/${var.environment_Name}-mq-key"
+  description             = "${var.environment_Name}/mq/apachemq/${random_string.random.result}/${var.environment_Name}-mq-key"
   enable_key_rotation     = true
   deletion_window_in_days = 7
   multi_region            = true
@@ -102,7 +108,7 @@ resource "random_password" "password" {
 
 # Store MQ password (Secrets Manager)
 resource "aws_secretsmanager_secret" "mq_password" {
-  name       = "/${var.environment_Name}/mq/apachemq/master"
+  name = "/${var.environment_Name}/mq/apachemq/${random_string.random.result}/master"
   tags = {
     "Name" = "${var.environment_Name}-mq_password"
   }

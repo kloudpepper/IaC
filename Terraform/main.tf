@@ -57,28 +57,28 @@ module "VPCEndpoints" {
   ]
 }
 
-module "RDS" {
-  source             = "./modules/RDS"
-  environment_Name   = var.environment_Name
-  private_subnet_ids = module.VPC.private_subnet_ids
-  rds_sg_id          = module.SG.rds_sg_id
-}
+# module "RDS" {
+#   source             = "./modules/RDS"
+#   environment_Name   = var.environment_Name
+#   private_subnet_ids = module.VPC.private_subnet_ids
+#   rds_sg_id          = module.SG.rds_sg_id
+# }
 
-module "MQ" {
-  source             = "./modules/MQ"
-  environment_Name   = var.environment_Name
-  private_subnet_ids = module.VPC.private_subnet_ids
-  mq_sg_id           = module.SG.mq_sg_id
-}
+# module "MQ" {
+#   source             = "./modules/MQ"
+#   environment_Name   = var.environment_Name
+#   private_subnet_ids = module.VPC.private_subnet_ids
+#   mq_sg_id           = module.SG.mq_sg_id
+# }
 
-module "ALB" {
-  source             = "./modules/ALB"
-  aws_Region         = var.aws_Region
-  environment_Name   = var.environment_Name
-  vpc_id             = module.VPC.vpc_id
-  private_subnet_ids = module.VPC.private_subnet_ids
-  alb_sg_id          = module.SG.alb_sg_id
-}
+# module "ALB" {
+#   source             = "./modules/ALB"
+#   aws_Region         = var.aws_Region
+#   environment_Name   = var.environment_Name
+#   vpc_id             = module.VPC.vpc_id
+#   private_subnet_ids = module.VPC.private_subnet_ids
+#   alb_sg_id          = module.SG.alb_sg_id
+# }
 
 # module "Route53" {
 #   source              = "./modules/Route53"
@@ -100,37 +100,9 @@ module "ALB" {
 #   certificate_ARN     = var.certificate_ARN
 # }
 
-# module "EKS" {
-#   source                         = "./modules/EKS"
-#   region                         = var.region
-#   environmentName                = var.environmentName
-#   PrivateSubnet1_id              = module.VPC.PrivateSubnet1_id
-#   PrivateSubnet2_id              = module.VPC.PrivateSubnet2_id
-#   ECSSecurityGroup_id            = module.SG.ECSSecurityGroup_id
-#   ImageUrlWeb                    = var.ImageUrlWeb
-#   ImageUrlDev                    = var.ImageUrlDev
-#   ImageUrlDevL3                  = var.ImageUrlDevL3
-#   ImageUrlTCUA                   = var.ImageUrlTCUA
-#   ImageUrlBFL                    = var.ImageUrlBFL
-#   ImageUrlApp                    = var.ImageUrlApp
-#   ImageUrlBatch                  = var.ImageUrlBatch
-#   TargetGroupWEB_arn             = module.ALB.TargetGroupWEB_arn
-#   TargetGroupDEV_arn             = module.ALB.TargetGroupDEV_arn
-#   TargetGroupDEVL3_arn           = module.ALB.TargetGroupDEVL3_arn
-#   TargetGroupTCUA_arn            = module.ALB.TargetGroupTCUA_arn
-#   TargetGroupAPP_arn             = module.ALB.TargetGroupAPP_arn
-#   MQEnpointAddr                  = module.MQ.MQEnpointAddr
-#   MQUser                         = var.MQUser
-#   MQPassword                     = var.MQPassword
-#   EFSFileSystem_id               = module.EFS.EFSFileSystem_id
-#   AccessPoint_import-request_id  = module.EFS.AccessPoint_import-request_id
-#   AccessPoint_import-response_id = module.EFS.AccessPoint_import-response_id
-#   AccessPoint_import-error_id    = module.EFS.AccessPoint_import-error_id
-#   AccessPoint_dw-export_id       = module.EFS.AccessPoint_dw-export_id
-#   AccessPoint_dfe_id             = module.EFS.AccessPoint_dfe_id
-#   AccessPoint_udexternal_id      = module.EFS.AccessPoint_udexternal_id
-#   AccessPoint_cfrextract_id      = module.EFS.AccessPoint_cfrextract_id
-#   AccessPoint_TAFJ_log_id        = module.EFS.AccessPoint_TAFJ_log_id
-#   AccessPoint_TAFJ_logT24_id     = module.EFS.AccessPoint_TAFJ_logT24_id
-#   DesiredCount                   = var.DesiredCount
-# }
+module "EKS" {
+  source             = "./modules/EKS"
+  environment_Name   = var.environment_Name
+  private_subnet_ids = module.VPC.private_subnet_ids
+  eks_sg_id          = module.SG.eks_sg_id
+}

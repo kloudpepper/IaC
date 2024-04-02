@@ -75,6 +75,12 @@ resource "aws_db_instance" "postgres_db" {
 ## Secrets Manager ##
 #####################
 
+resource "random_string" "random" {
+  length  = 4
+  special = false
+  upper   = false
+}
+
 # Create and store DB password (Secrets Manager)
 resource "random_password" "password" {
   length           = 16
@@ -83,7 +89,7 @@ resource "random_password" "password" {
 }
 
 resource "aws_secretsmanager_secret" "db_password" {
-  name       = "/${var.environment_Name}/rds/postgres/master"
+  name       = "/${var.environment_Name}/rds/postgres/${random_string.random.result}/master"
   kms_key_id = aws_kms_key.db_password.arn
   tags = {
     "Name" = "${var.environment_Name}-db_password"
@@ -107,7 +113,7 @@ provider "aws" {
 
 # Create a KMS key -- DB storage encryption
 resource "aws_kms_key" "db_postgres" {
-  description             = "${var.environment_Name}/rds/postgres/${var.environment_Name}-db"
+  description             = "${var.environment_Name}/rds/postgres/${random_string.random.result}/${var.environment_Name}-db"
   enable_key_rotation     = true
   deletion_window_in_days = 7
   multi_region            = true
@@ -131,7 +137,7 @@ resource "aws_kms_alias" "db_alias" {
 
 # Create a KMS key -- DB password encryption
 resource "aws_kms_key" "db_password" {
-  description             = "${var.environment_Name}/rds/postgres/${var.environment_Name}-db_password"
+  description             = "${var.environment_Name}/rds/postgres/${random_string.random.result}/${var.environment_Name}-db_password"
   enable_key_rotation     = true
   deletion_window_in_days = 7
   multi_region            = true
