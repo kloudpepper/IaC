@@ -65,6 +65,9 @@ resource "aws_db_instance" "postgres_db" {
     delete = "30m"
     update = "60m"
   }
+  lifecycle {
+    prevent_destroy = false
+  }
   tags = {
     "Name" = "${var.environment_Name}-db"
   }
