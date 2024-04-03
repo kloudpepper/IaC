@@ -63,37 +63,37 @@ output "vpc_endpoint_sg_id" {
 }
 
 output "db_endpoint" {
-  value       = module.RDS.db_endpoint
+  value = module.RDS.db_endpoint
 }
 
 output "db_url" {
-  value       = module.RDS.db_url
+  value = module.RDS.db_url
 }
 
 output "mq_endpoint" {
-  value       = module.MQ.mq_endpoint
+  value = module.MQ.mq_endpoint
 }
 
 output "mq_console" {
-  value       = module.MQ.mq_console
+  value = module.MQ.mq_console
 }
 
 output "mq_password_arn" {
-  value       = module.MQ.mq_password_arn
+  value = module.MQ.mq_password_arn
 }
 
 output "web_target_group_arn" {
-  value       = module.ALB.web_target_group_arn
+  value = module.ALB.web_target_group_arn
 }
 
 output "app_target_group_arn" {
-  value       = module.ALB.app_target_group_arn
+  value = module.ALB.app_target_group_arn
 }
 
 output "alb_name" {
-  value       = module.ALB.alb_name
+  value = module.ALB.alb_name
 }
 
 output "alb_hosted_zone_id" {
-  value       = module.ALB.alb_hosted_zone_id
+  value = module.ALB.alb_hosted_zone_id
 }

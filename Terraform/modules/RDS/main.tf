@@ -92,7 +92,7 @@ resource "aws_ssm_parameter" "db_url" {
   name        = "/${var.environment_Name}/rds/postgres/${random_string.random.result}/DB_URL"
   description = "DB URL for the application"
   type        = "SecureString"
-  value       = "postgres://${aws_db_instance.postgres_db.username}:${random_password.password.result}@${aws_db_instance.postgres_db.endpoint}:${aws_db_instance.postgres_db.port}/${aws_db_instance.postgres_db.db_name}"
+  value       = "postgres://${aws_db_instance.postgres_db.username}:${random_password.password.result}@${aws_db_instance.postgres_db.endpoint}/${aws_db_instance.postgres_db.db_name}"
 
   tags = {
     Name = "DB_URL"

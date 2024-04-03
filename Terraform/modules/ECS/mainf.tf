@@ -27,7 +27,7 @@ resource "aws_iam_role" "ecs_task_role" {
     Version = "2012-10-17"
   })
   managed_policy_arns = [
-    "arn:aws:iam::aws:policy/aws-service-role/AmazonECSServiceRolePolicy"
+    "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
   ]
   path = "/"
 }

@@ -100,16 +100,16 @@ module "ALB" {
 #   certificate_ARN     = var.certificate_ARN
 # }
 
-# module "ECS" {
-#   source               = "./modules/ECS"
-#   environment_Name     = var.environment_Name
-#   private_subnet_ids   = module.VPC.private_subnet_ids
-#   ecs_sg_id            = module.SG.ecs_sg_id
-#   docker_image         = var.docker_image
-#   web_target_group_arn = module.ALB.web_target_group_arn
-#   app_target_group_arn = module.ALB.app_target_group_arn
-#   mq_endpoint          = module.MQ.mq_endpoint
-#   mq_password_arn      = module.MQ.mq_password_arn
-#   db_url               = module.RDS.db_url
-#   aws_Region           = var.aws_Region
-# }
+module "ECS" {
+  source               = "./modules/ECS"
+  environment_Name     = var.environment_Name
+  private_subnet_ids   = module.VPC.private_subnet_ids
+  ecs_sg_id            = module.SG.ecs_sg_id
+  docker_image         = var.docker_image
+  web_target_group_arn = module.ALB.web_target_group_arn
+  app_target_group_arn = module.ALB.app_target_group_arn
+  mq_endpoint          = module.MQ.mq_endpoint
+  mq_password_arn      = module.MQ.mq_password_arn
+  db_url               = module.RDS.db_url
+  aws_Region           = var.aws_Region
+}
