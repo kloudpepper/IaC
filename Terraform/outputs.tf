@@ -46,8 +46,8 @@ output "alb_sg_id" {
   value = module.SG.alb_sg_id
 }
 
-output "eks_sg_id" {
-  value = module.SG.eks_sg_id
+output "ecs_sg_id" {
+  value = module.SG.ecs_sg_id
 }
 
 output "mq_sg_id" {
@@ -62,38 +62,38 @@ output "vpc_endpoint_sg_id" {
   value = module.SG.vpc_endpoint_sg_id
 }
 
-# output "db_endpoint" {
-#   value       = module.RDS.db_endpoint
-# }
+output "db_endpoint" {
+  value       = module.RDS.db_endpoint
+}
 
-# output "db_password_arn" {
-#   value       = module.RDS.db_password_arn
-# }
+output "db_url" {
+  value       = module.RDS.db_url
+}
 
-# output "mq_endpoint" {
-#   value       = module.MQ.mq_endpoint
-# }
+output "mq_endpoint" {
+  value       = module.MQ.mq_endpoint
+}
 
-# output "mq_console" {
-#   value       = module.MQ.mq_console
-# }
+output "mq_console" {
+  value       = module.MQ.mq_console
+}
 
-# output "mq_password_arn" {
-#   value       = module.MQ.mq_password_arn
-# }
+output "mq_password_arn" {
+  value       = module.MQ.mq_password_arn
+}
 
-# output "web_target_group_arn" {
-#   value       = module.ALB.web_target_group_arn
-# }
+output "web_target_group_arn" {
+  value       = module.ALB.web_target_group_arn
+}
 
-# output "app_target_group_arn" {
-#   value       = module.ALB.app_target_group_arn
-# }
+output "app_target_group_arn" {
+  value       = module.ALB.app_target_group_arn
+}
 
-# output "alb_name" {
-#   value       = module.ALB.alb_name
-# }
+output "alb_name" {
+  value       = module.ALB.alb_name
+}
 
-# output "alb_hosted_zone_id" {
-#   value       = module.ALB.alb_hosted_zone_id
-# }
+output "alb_hosted_zone_id" {
+  value       = module.ALB.alb_hosted_zone_id
+}

@@ -59,7 +59,7 @@ resource "aws_db_instance" "postgres_db" {
   storage_encrypted               = true
   kms_key_id                      = aws_kms_key.db_postgres.arn
   username                        = "master"
-  password                        = aws_secretsmanager_secret_version.db_password.secret_string
+  password                        = random_password.password.result
   timeouts {
     create = "60m"
     delete = "30m"
@@ -88,18 +88,17 @@ resource "random_password" "password" {
   override_special = "_%+=.,;:!"
 }
 
-resource "aws_secretsmanager_secret" "db_password" {
-  name       = "/${var.environment_Name}/rds/postgres/${random_string.random.result}/master"
-  kms_key_id = aws_kms_key.db_password.arn
+resource "aws_ssm_parameter" "db_url" {
+  name        = "/${var.environment_Name}/rds/postgres/${random_string.random.result}/DB_URL"
+  description = "DB URL for the application"
+  type        = "SecureString"
+  value       = "postgres://${aws_db_instance.postgres_db.username}:${random_password.password.result}@${aws_db_instance.postgres_db.endpoint}:${aws_db_instance.postgres_db.port}/${aws_db_instance.postgres_db.db_name}"
+
   tags = {
-    "Name" = "${var.environment_Name}-db_password"
+    Name = "DB_URL"
   }
 }
 
-resource "aws_secretsmanager_secret_version" "db_password" {
-  secret_id     = aws_secretsmanager_secret.db_password.id
-  secret_string = random_password.password.result
-}
 
 
 #########
@@ -132,28 +131,4 @@ resource "aws_kms_replica_key" "db_replica" {
 resource "aws_kms_alias" "db_alias" {
   name          = "alias/${var.environment_Name}-db"
   target_key_id = aws_kms_key.db_postgres.id
-}
-
-
-# Create a KMS key -- DB password encryption
-resource "aws_kms_key" "db_password" {
-  description             = "${var.environment_Name}/rds/postgres/${random_string.random.result}/${var.environment_Name}-db_password"
-  enable_key_rotation     = true
-  deletion_window_in_days = 7
-  multi_region            = true
-  tags = {
-    "Name" = "${var.environment_Name}-db_password"
-  }
-}
-
-resource "aws_kms_replica_key" "db_password_replica" {
-  provider                = aws.replica
-  description             = "Multi-Region replica key"
-  deletion_window_in_days = 7
-  primary_key_arn         = aws_kms_key.db_password.arn
-}
-
-resource "aws_kms_alias" "db_password_alias" {
-  name          = "alias/${var.environment_Name}-db_password"
-  target_key_id = aws_kms_key.db_password.id
 }

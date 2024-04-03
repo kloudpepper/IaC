@@ -65,17 +65,9 @@ variable "route_TransitGateway" {
   description = "Add route to Transit Gateway. It should be to connect to another VPC or VPN (on-premises)"
 }
 
-# variable "ImageUrlWeb" {
-#   type = string
-# }
-
-# variable "ImageUrlApp" {
-#   type = string
-# }
-
-# variable "DesiredCount" {
-#   type = number
-# }
+variable "docker_image" {
+  type = string
+}
 
 # variable "regions" {
 #   type = map(string)

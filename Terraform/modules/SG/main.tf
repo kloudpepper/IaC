@@ -14,7 +14,7 @@ locals {
 # Create ALB Security Group
 resource "aws_security_group" "alb_sg" {
   vpc_id      = var.vpc_id
-  name        = "${var.environment_Name}-ALB-SG"
+  name        = "${var.environment_Name}-alb-sg"
   description = "ALB Security Group"
 
   ingress {
@@ -34,15 +34,15 @@ resource "aws_security_group" "alb_sg" {
   }
 
   tags = {
-    Name = "${var.environment_Name}-ALB-SG"
+    Name = "${var.environment_Name}-alb-sg"
   }
 }
 
-# Create EKS Security Group
-resource "aws_security_group" "eks_sg" {
+# Create ECS Security Group
+resource "aws_security_group" "ecs_sg" {
   vpc_id      = var.vpc_id
-  name        = "${var.environment_Name}-EKS-SG"
-  description = "EKS Security Group"
+  name        = "${var.environment_Name}-ecs-sg"
+  description = "ECS Security Group"
 
   ingress {
     security_groups = [aws_security_group.alb_sg.id]
@@ -53,18 +53,18 @@ resource "aws_security_group" "eks_sg" {
   }
 
   tags = {
-    Name = "${var.environment_Name}-EKS-SG"
+    Name = "${var.environment_Name}-ecs-sg"
   }
 }
 
 # Create MQ Security Group
 resource "aws_security_group" "mq_sg" {
   vpc_id      = var.vpc_id
-  name        = "${var.environment_Name}-MQ-SG"
+  name        = "${var.environment_Name}-mq-sg"
   description = "MQ Security Group"
 
   ingress {
-    security_groups = [aws_security_group.eks_sg.id]
+    security_groups = [aws_security_group.ecs_sg.id]
     description     = ""
     from_port       = local.ports.mq
     to_port         = local.ports.mq
@@ -72,18 +72,18 @@ resource "aws_security_group" "mq_sg" {
   }
 
   tags = {
-    Name = "${var.environment_Name}-MQ-SG"
+    Name = "${var.environment_Name}-mq-sg"
   }
 }
 
 # Create RDS Security Group
 resource "aws_security_group" "rds_sg" {
   vpc_id      = var.vpc_id
-  name        = "${var.environment_Name}-RDS-SG"
+  name        = "${var.environment_Name}-rds-sg"
   description = "RDS Security Group"
 
   ingress {
-    security_groups = [aws_security_group.eks_sg.id]
+    security_groups = [aws_security_group.ecs_sg.id]
     description     = ""
     from_port       = local.ports.postgres
     to_port         = local.ports.postgres
@@ -91,14 +91,14 @@ resource "aws_security_group" "rds_sg" {
   }
 
   tags = {
-    Name = "${var.environment_Name}-RDS-SG"
+    Name = "${var.environment_Name}-rds-sg"
   }
 }
 
 # Create VPC Endpoints Security Group
 resource "aws_security_group" "vpc_endpoint_sg" {
   vpc_id      = var.vpc_id
-  name        = "${var.environment_Name}-VPCEndpoints-SG"
+  name        = "${var.environment_Name}-vpcendpoints-sg"
   description = "VPC Endpoints Security Group"
 
   ingress {
@@ -110,6 +110,6 @@ resource "aws_security_group" "vpc_endpoint_sg" {
   }
 
   tags = {
-    Name = "${var.environment_Name}-VPCEndpoints-SG"
+    Name = "${var.environment_Name}-vpcendpoints-sg"
   }
 }

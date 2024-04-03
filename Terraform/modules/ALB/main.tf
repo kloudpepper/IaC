@@ -3,7 +3,7 @@
 ##################
 
 locals {
-  targets = ["WEB", "APP"]
+  targets = ["web", "app"]
 }
 
 # Create Target Groups
@@ -20,7 +20,7 @@ resource "aws_lb_target_group" "target_group" {
     matcher             = "200"
   }
   stickiness {
-    enabled         = local.targets[count.index] == "WEB" ? true : false
+    enabled         = local.targets[count.index] == "web" ? true : false
     type            = "lb_cookie"
     cookie_duration = 86400
   }
@@ -28,13 +28,13 @@ resource "aws_lb_target_group" "target_group" {
   protocol             = "HTTP"
   target_type          = "ip"
   vpc_id               = var.vpc_id
-  name                 = "${var.environment_Name}-${local.targets[count.index]}-TG"
+  name                 = "${var.environment_Name}-${local.targets[count.index]}-tg"
   deregistration_delay = 10
 }
 
 # Create ALB
 resource "aws_lb" "alb" {
-  name               = "${var.environment_Name}-ALB"
+  name               = "${var.environment_Name}-alb"
   internal           = true
   load_balancer_type = "application"
   subnets            = length(var.private_subnet_ids) == 4 ? slice(var.private_subnet_ids, 0, 2) : length(var.private_subnet_ids) == 6 ? slice(var.private_subnet_ids, 0, 2, 4) : var.private_subnet_ids
@@ -48,6 +48,9 @@ resource "aws_lb" "alb" {
   idle_timeout               = "60"
   enable_deletion_protection = false
   enable_http2               = true
+  tags = {
+    Name = "${var.environment_Name}-alb"
+  }
 }
 
 # Create Listeners

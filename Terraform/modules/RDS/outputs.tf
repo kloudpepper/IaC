@@ -3,7 +3,7 @@ output "db_endpoint" {
   value       = aws_db_instance.postgres_db.endpoint
 }
 
-output "db_password_arn" {
-  description = "Secret ARN Password DB"
-  value       = aws_secretsmanager_secret.db_password.arn
+output "db_url" {
+  description = "The ARN of the DB URL parameter in SSM"
+  value       = aws_ssm_parameter.db_url.arn
 }
