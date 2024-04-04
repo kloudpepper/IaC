@@ -57,59 +57,46 @@ module "VPCEndpoints" {
   ]
 }
 
-module "RDS" {
-  source             = "./modules/RDS"
-  environment_Name   = var.environment_Name
-  private_subnet_ids = module.VPC.private_subnet_ids
-  rds_sg_id          = module.SG.rds_sg_id
-}
-
-module "MQ" {
-  source             = "./modules/MQ"
-  environment_Name   = var.environment_Name
-  private_subnet_ids = module.VPC.private_subnet_ids
-  mq_sg_id           = module.SG.mq_sg_id
-}
-
-module "ALB" {
-  source             = "./modules/ALB"
-  aws_Region         = var.aws_Region
-  environment_Name   = var.environment_Name
-  vpc_id             = module.VPC.vpc_id
-  private_subnet_ids = module.VPC.private_subnet_ids
-  alb_sg_id          = module.SG.alb_sg_id
-}
-
-# module "Route53" {
-#   source              = "./modules/Route53"
-#   environmentName     = var.environmentName
-#   vpc_id              = module.VPC.vpc_id
-#   PrivateSubnet1_id   = module.VPC.PrivateSubnet1_id
-#   PrivateSubnet2_id   = module.VPC.PrivateSubnet2_id
-#   ALBSecurityGroup_id = module.SG.ALBSecurityGroup_id
-#   certificate_ARN     = var.certificate_ARN
+# module "RDS" {
+#   source             = "./modules/RDS"
+#   environment_Name   = var.environment_Name
+#   private_subnet_ids = module.VPC.private_subnet_ids
+#   rds_sg_id          = module.SG.rds_sg_id
 # }
 
-# module "CloudMap" {
-#   source              = "./modules/CloudMap"
-#   environmentName     = var.environmentName
-#   vpc_id              = module.VPC.vpc_id
-#   PrivateSubnet1_id   = module.VPC.PrivateSubnet1_id
-#   PrivateSubnet2_id   = module.VPC.PrivateSubnet2_id
-#   ALBSecurityGroup_id = module.SG.ALBSecurityGroup_id
-#   certificate_ARN     = var.certificate_ARN
+# module "MQ" {
+#   source             = "./modules/MQ"
+#   environment_Name   = var.environment_Name
+#   private_subnet_ids = module.VPC.private_subnet_ids
+#   mq_sg_id           = module.SG.mq_sg_id
 # }
 
-module "ECS" {
-  source               = "./modules/ECS"
-  environment_Name     = var.environment_Name
-  private_subnet_ids   = module.VPC.private_subnet_ids
-  ecs_sg_id            = module.SG.ecs_sg_id
-  docker_image         = var.docker_image
-  web_target_group_arn = module.ALB.web_target_group_arn
-  app_target_group_arn = module.ALB.app_target_group_arn
-  mq_endpoint          = module.MQ.mq_endpoint
-  mq_password_arn      = module.MQ.mq_password_arn
-  db_url               = module.RDS.db_url
-  aws_Region           = var.aws_Region
+# module "ALB" {
+#   source             = "./modules/ALB"
+#   aws_Region         = var.aws_Region
+#   environment_Name   = var.environment_Name
+#   vpc_id             = module.VPC.vpc_id
+#   private_subnet_ids = module.VPC.private_subnet_ids
+#   alb_sg_id          = module.SG.alb_sg_id
+# }
+
+module "CloudMap" {
+  source           = "./modules/CloudMap"
+  environment_Name = var.environment_Name
+  vpc_id           = module.VPC.vpc_id
 }
+
+# module "ECS" {
+#   source               = "./modules/ECS"
+#   environment_Name     = var.environment_Name
+#   private_subnet_ids   = module.VPC.private_subnet_ids
+#   ecs_sg_id            = module.SG.ecs_sg_id
+#   docker_image         = var.docker_image
+#   web_target_group_arn = module.ALB.web_target_group_arn
+#   app_target_group_arn = module.ALB.app_target_group_arn
+#   mq_endpoint          = module.MQ.mq_endpoint
+#   mq_password_arn      = module.MQ.mq_password_arn
+#   db_url               = module.RDS.db_url
+#   aws_Region           = var.aws_Region
+#   http_namespace_arn   = module.CloudMap.http_namespace_arn
+# }

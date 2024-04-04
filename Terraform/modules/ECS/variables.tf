@@ -39,3 +39,7 @@ variable "mq_password_arn" {
 variable "db_url" {
   type = string
 }
+
+variable "http_namespace_arn" {
+  type = string
+}

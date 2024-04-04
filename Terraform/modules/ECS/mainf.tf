@@ -79,10 +79,18 @@ resource "aws_ecs_task_definition" "task_definition" {
     ],
     "environment": [
         {"name": "JMS_USER", "value": "master"},
-        {"name": "JMS_PASSWORD", "valueFrom": "${var.mq_password_arn}"},
         {"name": "JMS_URL", "value": "${var.mq_endpoint}"},
-        {"name": "DB_URL", "valuefrom": "${var.db_url}"},
         {"name": "TZ", "value": "Europe/Paris"}
+    ],
+    "secrets": [
+        {
+            "name": "JMS_PASSWORD",
+            "valueFrom": "${var.mq_password_arn}"
+        },
+        {
+            "name": "DB_URL",
+            "valueFrom": "${var.db_url}"
+      }
     ],
     "ulimits": [
       {
@@ -112,6 +120,9 @@ resource "aws_ecs_cluster" "ecs_cluster" {
     name  = "containerInsights"
     value = "enabled"
   }
+  service_connect_defaults {
+    namespace = var.http_namespace_arn
+  }
 }
 
 ### Services ###
@@ -124,8 +135,8 @@ resource "aws_ecs_service" "ecs_service" {
     container_name   = "${each.value}-container"
     container_port   = 80
   }
-  health_check_grace_period_seconds  = 60
-  desired_count                      = 1
+  health_check_grace_period_seconds = 60
+  desired_count                     = 1
   #launch_type                        = "FARGATE"
   platform_version                   = "LATEST"
   task_definition                    = aws_ecs_task_definition.task_definition[each.key].arn
@@ -141,14 +152,18 @@ resource "aws_ecs_service" "ecs_service" {
   enable_ecs_managed_tags = true
   propagate_tags          = "SERVICE"
   force_new_deployment    = true
+  service_connect_configuration {
+    namespace = var.http_namespace_arn
+    enabled   = true
+  }
   capacity_provider_strategy {
     capacity_provider = "FARGATE_SPOT"
     weight            = 2
-    base              = 1
   }
   capacity_provider_strategy {
     capacity_provider = "FARGATE"
     weight            = 1
+    base              = 2
   }
 }
 
@@ -158,8 +173,6 @@ resource "aws_ecs_cluster_capacity_providers" "capacity_providers" {
   capacity_providers = ["FARGATE", "FARGATE_SPOT"]
 
   default_capacity_provider_strategy {
-    base              = 1
-    weight            = 100
     capacity_provider = "FARGATE_SPOT"
   }
 }
