@@ -27,7 +27,7 @@ resource "aws_iam_role" "ecs_task_role" {
     Version = "2012-10-17"
   })
   managed_policy_arns = [
-    "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+    "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
   ]
   path = "/"
 }
@@ -45,7 +45,9 @@ resource "aws_iam_role" "ecs_task_execution_role" {
     Version = "2012-10-17"
   })
   managed_policy_arns = [
-    "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+    "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy",
+    "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess",
+    "arn:aws:iam::aws:policy/SecretsManagerReadWrite"
   ]
   path = "/"
 }
@@ -79,7 +81,7 @@ resource "aws_ecs_task_definition" "task_definition" {
         {"name": "JMS_USER", "value": "master"},
         {"name": "JMS_PASSWORD", "valueFrom": "${var.mq_password_arn}"},
         {"name": "JMS_URL", "value": "${var.mq_endpoint}"},
-        {"name": "DB_URL", "valueFrom": "${var.db_url}"},
+        {"name": "DB_URL", "valuefrom": "${var.db_url}"},
         {"name": "TZ", "value": "Europe/Paris"}
     ],
     "ulimits": [
@@ -118,15 +120,15 @@ resource "aws_ecs_service" "ecs_service" {
   name     = "${var.environment_Name}-${each.value}-service"
   cluster  = aws_ecs_cluster.ecs_cluster.id
   load_balancer {
-    target_group_arn = contains(local.containers, "web") ? var.web_target_group_arn : var.app_target_group_arn
+    target_group_arn = each.key == "web" ? var.web_target_group_arn : var.app_target_group_arn
     container_name   = "${each.value}-container"
     container_port   = 80
   }
   health_check_grace_period_seconds  = 60
   desired_count                      = 1
-  launch_type                        = "FARGATE"
+  #launch_type                        = "FARGATE"
   platform_version                   = "LATEST"
-  task_definition                    = aws_ecs_task_definition.task_definition[each.value].arn
+  task_definition                    = aws_ecs_task_definition.task_definition[each.key].arn
   deployment_maximum_percent         = 200
   deployment_minimum_healthy_percent = 100
   network_configuration {
@@ -139,4 +141,25 @@ resource "aws_ecs_service" "ecs_service" {
   enable_ecs_managed_tags = true
   propagate_tags          = "SERVICE"
   force_new_deployment    = true
+  capacity_provider_strategy {
+    capacity_provider = "FARGATE_SPOT"
+    weight            = 2
+    base              = 1
+  }
+  capacity_provider_strategy {
+    capacity_provider = "FARGATE"
+    weight            = 1
+  }
+}
+
+resource "aws_ecs_cluster_capacity_providers" "capacity_providers" {
+  cluster_name = aws_ecs_cluster.ecs_cluster.name
+
+  capacity_providers = ["FARGATE", "FARGATE_SPOT"]
+
+  default_capacity_provider_strategy {
+    base              = 1
+    weight            = 100
+    capacity_provider = "FARGATE_SPOT"
+  }
 }

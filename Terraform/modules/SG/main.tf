@@ -32,6 +32,12 @@ resource "aws_security_group" "alb_sg" {
     to_port     = local.ports.https
     protocol    = "tcp"
   }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
   tags = {
     Name = "${var.environment_Name}-alb-sg"
@@ -50,6 +56,12 @@ resource "aws_security_group" "ecs_sg" {
     from_port       = local.ports.http
     to_port         = local.ports.http
     protocol        = "tcp"
+  }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags = {
@@ -70,6 +82,12 @@ resource "aws_security_group" "mq_sg" {
     to_port         = local.ports.mq
     protocol        = "tcp"
   }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
   tags = {
     Name = "${var.environment_Name}-mq-sg"
@@ -89,6 +107,12 @@ resource "aws_security_group" "rds_sg" {
     to_port         = local.ports.postgres
     protocol        = "tcp"
   }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
   tags = {
     Name = "${var.environment_Name}-rds-sg"
@@ -107,6 +131,12 @@ resource "aws_security_group" "vpc_endpoint_sg" {
     from_port   = local.ports.https
     to_port     = local.ports.https
     protocol    = "tcp"
+  }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags = {

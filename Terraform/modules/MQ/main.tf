@@ -5,7 +5,7 @@
 # Create a MQ configuration
 resource "aws_mq_configuration" "configuration" {
   description    = "MQ Configuration"
-  name           = "${var.environment_Name}-configuration-MQ"
+  name           = "${var.environment_Name}-configuration-mq"
   engine_type    = "ActiveMQ"
   engine_version = "5.17.6"
   data           = <<DATA
@@ -35,7 +35,7 @@ DATA
 
 # Create a MQ broker
 resource "aws_mq_broker" "apache_mq" {
-  broker_name = "${var.environment_Name}-apache-MQ"
+  broker_name = "${var.environment_Name}-apache-mq"
   configuration {
     id       = aws_mq_configuration.configuration.id
     revision = aws_mq_configuration.configuration.latest_revision
@@ -69,7 +69,7 @@ resource "aws_mq_broker" "apache_mq" {
     use_aws_owned_key = false
   }
   tags = {
-    "Name" = "${var.environment_Name}-apache-MQ"
+    "Name" = "${var.environment_Name}-apache-mq"
   }
 }
 

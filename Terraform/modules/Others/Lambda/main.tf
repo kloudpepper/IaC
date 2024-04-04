@@ -105,7 +105,6 @@ resource "aws_lambda_function" "LambdaFunctionExporter" {
 resource "aws_cloudwatch_event_rule" "EventRuleExporter" {
   name                = "${var.environmentName}-rule"
   schedule_expression = "rate(1 minute)"
-  is_enabled          = true
 }
 
 resource "aws_cloudwatch_event_target" "EventTargetExporter" {

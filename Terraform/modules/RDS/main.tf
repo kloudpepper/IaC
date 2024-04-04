@@ -11,6 +11,9 @@ resource "aws_db_subnet_group" "subnet_group" {
   name        = "${var.environment_Name}-subnetgroup"
   description = "Private subnet group for the database"
   subnet_ids  = length(var.private_subnet_ids) == 4 ? slice(var.private_subnet_ids, 1, 3) : length(var.private_subnet_ids) == 6 ? slice(var.private_subnet_ids, 1, 3, 5) : var.private_subnet_ids
+  lifecycle {
+    create_before_destroy = true
+  }
   tags = {
     "Name" = "${var.environment_Name}-subnetgroup"
   }
@@ -25,6 +28,9 @@ resource "aws_db_parameter_group" "parameter_group" {
     name         = "max_connections"
     value        = "100"
     apply_method = "pending-reboot"
+  }
+  lifecycle {
+    create_before_destroy = true
   }
   tags = {
     "Name" = "${var.environment_Name}-parametergroup"
@@ -65,18 +71,15 @@ resource "aws_db_instance" "postgres_db" {
     delete = "30m"
     update = "60m"
   }
-  lifecycle {
-    prevent_destroy = false
-  }
   tags = {
     "Name" = "${var.environment_Name}-db"
   }
 }
 
 
-#####################
-## Secrets Manager ##
-#####################
+#########################
+## SSM Parameter Store ##
+#########################
 
 resource "random_string" "random" {
   length  = 4
@@ -84,13 +87,14 @@ resource "random_string" "random" {
   upper   = false
 }
 
-# Create and store DB password (Secrets Manager)
+# Create DB password
 resource "random_password" "password" {
   length           = 16
   special          = true
   override_special = "_%+=.,;:!"
 }
 
+# Create DB URL and store it in SSM Parameter Store
 resource "aws_ssm_parameter" "db_url" {
   name        = "/${var.environment_Name}/rds/postgres/${random_string.random.result}/DB_URL"
   description = "DB URL for the application"
@@ -101,7 +105,6 @@ resource "aws_ssm_parameter" "db_url" {
     Name = "DB_URL"
   }
 }
-
 
 
 #########
