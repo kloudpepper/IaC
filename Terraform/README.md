@@ -8,7 +8,6 @@
 ├── MQ (Apache ActiveMQ)  # Message broker service.
 ├── RDS (PostgreSQL)      # PostgreSQL Database.
 ├── ALB                   # Application Load Balancer, HTTPS Listener, Rules.
-├── Route53 (Private)     # DNS.
 ├── Cloud Map             # Define user-friendly names.
 ├── ECS (Fargate)         # Elastic Container Service with AWS Fargate.
 ```

@@ -1,7 +1,3 @@
-output "http_namespace_arn" {
-  value = aws_service_discovery_http_namespace.http_namespace.arn
-}
-
 output "private_dns_namespace_id" {
   value = aws_service_discovery_private_dns_namespace.private_dns_namespace.id
 }

@@ -1,6 +1,3 @@
-resource "aws_service_discovery_http_namespace" "http_namespace" {
-  name = "${var.environment_Name}.local"
-}
 
 resource "aws_service_discovery_private_dns_namespace" "private_dns_namespace" {
   name        = "${var.environment_Name}.local"
