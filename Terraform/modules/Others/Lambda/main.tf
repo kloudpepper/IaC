@@ -82,11 +82,11 @@ resource "aws_lambda_function" "LambdaFunctionExporter" {
   architectures = [
     "x86_64"
   ]
-  s3_bucket   = "cf-templates-corebancario-main"
+  s3_bucket   = "cf-templates-main"
   s3_key      = "Lambda/lambda-exporter.zip"
   memory_size = 128
   role        = aws_iam_role.LambdaRoleExporter.arn
-  runtime     = "python3.7"
+  runtime     = "python3.10"
   timeout     = 90
   vpc_config {
     subnet_ids         = [var.PrivateSubnet1_id, var.PrivateSubnet2_id]
@@ -94,18 +94,16 @@ resource "aws_lambda_function" "LambdaFunctionExporter" {
   }
   environment {
     variables = {
-      REQUESTURL         = "https://${var.environmentName}.corebancario-diners.com/irf-provider-container/api/v1.0.0/system/metrics/elasticity/agents/itemCount"
+      REQUESTURL         = "https://${var.environmentName}.example.com/agents/itemCount"
       THRESHOLD          = "12"
       PROVISIONINGFACTOR = "1"
-      IRISUSER           = "T24IRISINPUTT"
-      IRISPASSWORD       = "4$8e.Lhzb6yWvJF("
-      RESOURCEID         = "service/${var.environmentName}-cluster/${var.environmentName}-batch"
+      RESOURCEID         = "service/${var.environmentName}-cluster/${var.environmentName}"
     }
   }
 }
 
 resource "aws_cloudwatch_event_rule" "EventRuleExporter" {
-  name                = "${var.environmentName}-Exporter-rule"
+  name                = "${var.environmentName}-rule"
   schedule_expression = "rate(1 minute)"
   is_enabled          = true
 }

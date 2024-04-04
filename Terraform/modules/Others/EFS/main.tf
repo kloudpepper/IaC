@@ -38,10 +38,10 @@ resource "aws_efs_access_point" "import-request" {
       owner_uid   = 1000
       permissions = 777
     }
-    path = "/opt/tocfee/request"
+    path = "/opt"
   }
   tags = {
-    Name = "import-request"
+    Name = "request"
   }
 }
 
@@ -53,10 +53,10 @@ resource "aws_efs_access_point" "import-response" {
       owner_uid   = 1000
       permissions = 777
     }
-    path = "/opt/tocfee/response"
+    path = "/opt/tocfee"
   }
   tags = {
-    Name = "import-response"
+    Name = "import"
   }
 }
 
@@ -68,10 +68,10 @@ resource "aws_efs_access_point" "import-error" {
       owner_uid   = 1000
       permissions = 777
     }
-    path = "/opt/tocfee/error"
+    path = "/opt/error"
   }
   tags = {
-    Name = "import-error"
+    Name = "error"
   }
 }
 
@@ -86,7 +86,7 @@ resource "aws_efs_access_point" "dw-export" {
     path = "/s3"
   }
   tags = {
-    Name = "dw-export"
+    Name = "export"
   }
 }
 
@@ -98,7 +98,7 @@ resource "aws_efs_access_point" "dfe" {
       owner_uid   = 1000
       permissions = 777
     }
-    path = "/t24/DFE"
+    path = "/t23"
   }
   tags = {
     Name = "dfe"
@@ -113,7 +113,7 @@ resource "aws_efs_access_point" "udexternal" {
       owner_uid   = 1000
       permissions = 777
     }
-    path = "/t24/UDExternal"
+    path = "/t23/uuexternal"
   }
   tags = {
     Name = "udexternal"
@@ -128,7 +128,7 @@ resource "aws_efs_access_point" "cfrextract" {
       owner_uid   = 1000
       permissions = 777
     }
-    path = "/${var.environmentName}/CRF.EXTRACT"
+    path = "/${var.environmentName}/CF"
   }
   tags = {
     Name = "cfrextract"
@@ -143,10 +143,10 @@ resource "aws_efs_access_point" "TAFJ_log" {
       owner_uid   = 1000
       permissions = 777
     }
-    path = "/t24/TAFJ_log"
+    path = "/log"
   }
   tags = {
-    Name = "TAFJ_log"
+    Name = "log"
   }
 }
 
@@ -158,9 +158,9 @@ resource "aws_efs_access_point" "TAFJ_logT24" {
       owner_uid   = 1000
       permissions = 777
     }
-    path = "/t24/TAFJ_logT24"
+    path = "/logT23"
   }
   tags = {
-    Name = "TAFJ_logT24"
+    Name = "logT23"
   }
 }
