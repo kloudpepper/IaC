@@ -1,10 +1,15 @@
+########################
+### Cloud Map Module ###
+########################
 
+# Create a private DNS namespace
 resource "aws_service_discovery_private_dns_namespace" "private_dns_namespace" {
   name        = "${var.environment_Name}.local"
   description = "${var.environment_Name}.local"
   vpc         = var.vpc_id
 }
 
+# Create services
 resource "aws_service_discovery_service" "web_discovery_service" {
   name = "web"
 

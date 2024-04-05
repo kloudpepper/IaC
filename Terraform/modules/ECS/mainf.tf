@@ -6,14 +6,14 @@ locals {
   containers = ["web", "app"]
 }
 
-### CloudWatch Log Groups ###
+### Create CloudWatch Log Groups ###
 resource "aws_cloudwatch_log_group" "log_group" {
   for_each          = toset(local.containers)
   name              = "/ecs/${var.environment_Name}-${each.value}"
   retention_in_days = 7
 }
 
-### Roles ###
+### Create Roles ###
 resource "aws_iam_role" "ecs_task_role" {
   name = "${var.environment_Name}-ECSTaskRole"
   assume_role_policy = jsonencode({
@@ -52,7 +52,7 @@ resource "aws_iam_role" "ecs_task_execution_role" {
   path = "/"
 }
 
-### Task Definitions ###
+### Create Task Definitions ###
 resource "aws_ecs_task_definition" "task_definition" {
   for_each                 = toset(local.containers)
   family                   = "${var.environment_Name}-${each.value}-td"
@@ -113,7 +113,7 @@ TASK_DEFINITION
 }
 
 
-### Cluster ###
+### Create Cluster ###
 resource "aws_ecs_cluster" "ecs_cluster" {
   name = "${var.environment_Name}-ecs-cluster"
   setting {
@@ -125,7 +125,7 @@ resource "aws_ecs_cluster" "ecs_cluster" {
   }
 }
 
-### Services ###
+### Create Services ###
 resource "aws_ecs_service" "ecs_service" {
   for_each = toset(local.containers)
   name     = "${var.environment_Name}-${each.value}-service"
@@ -167,6 +167,7 @@ resource "aws_ecs_service" "ecs_service" {
   }
 }
 
+### Create Capacity Providers ###
 resource "aws_ecs_cluster_capacity_providers" "capacity_providers" {
   cluster_name = aws_ecs_cluster.ecs_cluster.name
 
