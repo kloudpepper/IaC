@@ -27,6 +27,7 @@ resource "aws_iam_role" "ecs_task_role" {
     Version = "2012-10-17"
   })
   managed_policy_arns = [
+    "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy",
     "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
   ]
   path = "/"
@@ -74,7 +75,10 @@ resource "aws_ecs_task_definition" "task_definition" {
     "portMappings": [
         {
             "containerPort": 80,
-            "hostPort": 80
+            "hostPort": 80,
+            "protocol": "tcp",
+            "name": "${each.value}-80-http",
+            "appProtocol": "http"
         }
     ],
     "environment": [
@@ -121,7 +125,7 @@ resource "aws_ecs_cluster" "ecs_cluster" {
     value = "enabled"
   }
   service_connect_defaults {
-    namespace = var.http_namespace_arn
+    namespace = var.private_dns_namespace_arn
   }
 }
 
@@ -153,8 +157,11 @@ resource "aws_ecs_service" "ecs_service" {
   propagate_tags          = "SERVICE"
   force_new_deployment    = true
   service_connect_configuration {
-    namespace = var.http_namespace_arn
     enabled   = true
+    namespace = var.private_dns_namespace_arn
+  }
+  service_registries {
+    registry_arn = each.key == "web" ? var.web_discovery_service_arn : var.app_discovery_service_arn
   }
   capacity_provider_strategy {
     capacity_provider = "FARGATE_SPOT"
@@ -176,4 +183,14 @@ resource "aws_ecs_cluster_capacity_providers" "capacity_providers" {
   default_capacity_provider_strategy {
     capacity_provider = "FARGATE_SPOT"
   }
+}
+
+### Create Auto Scaling ###
+resource "aws_appautoscaling_target" "ecs_target" {
+  for_each           = toset(local.containers)
+  max_capacity       = 2
+  min_capacity       = 1
+  resource_id        = "service/${var.environment_Name}-ecs-cluster/${var.environment_Name}-${each.value}-service"
+  scalable_dimension = "ecs:service:DesiredCount"
+  service_namespace  = "ecs"
 }

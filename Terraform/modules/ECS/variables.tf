@@ -40,6 +40,14 @@ variable "db_url" {
   type = string
 }
 
-variable "http_namespace_arn" {
+variable "private_dns_namespace_arn" {
+  type = string
+}
+
+variable "web_discovery_service_arn" {
+  type = string
+}
+
+variable "app_discovery_service_arn" {
   type = string
 }
