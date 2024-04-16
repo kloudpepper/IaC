@@ -1,0 +1,13 @@
+{
+  "default": [
+    {
+      "Environment_Name": "kloudpepper",
+      "Environment_Type": "dev"
+    }
+  ],
+  "S3": [
+    {
+      "Bucket_Name": "kloudpepper-s3"
+    }
+  ]
+}

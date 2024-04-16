@@ -1,0 +1,9 @@
+encryptionsalt: v1:OI3piV36IAM=:v1:C2U3WercxJLyqEqA:yTD4e6y1HtYEQN+6tvsymirzIgHs7g==
+config:
+  aws:profile: default
+  aws:region: us-east-1
+  aws:defaultTags:
+    tags:
+      EnvironmentName: "kloudpepper"
+      EnvironmentType: "DEV"
+      IaC: "Pulumi"
