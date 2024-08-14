@@ -15,7 +15,7 @@ locals {
 
   cf_api_origins = [
     {
-      path_pattern    = "/cloud/*"
+      path_pattern    = "/api/*"
       origin_id       = "apigateway_main"
       allowed_methods = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
       domain_origin   = "apigw.kloudpepper.com"

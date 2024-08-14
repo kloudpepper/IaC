@@ -1,6 +1,6 @@
 resource "aws_cloudfront_distribution" "cloudfront_api" {
   enabled             = true
-  comment             = "${local.environment_prefix}-${local.cf_api_name}-cf"
+  comment             = "API Gateway CloudFront Distribution"
   default_root_object = "index.html"
   price_class         = "PriceClass_100"
 
@@ -79,7 +79,6 @@ resource "aws_cloudfront_distribution" "cloudfront_api" {
   }
 
   tags = merge(var.tags, {
-    "ib:resource:name" = local.cf_api_name,
     "Name"             = local.cf_api_name,
     "alias"            = "${local.environment_prefix}-${local.cf_api_name}-cf"
   })
