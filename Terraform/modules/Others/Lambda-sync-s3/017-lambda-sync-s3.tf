@@ -72,7 +72,7 @@ resource "aws_iam_policy" "s3_sync_policy" {
 # Lambda function to sync buckets
 resource "aws_lambda_function" "s3_sync_lambda" {
   function_name    = "${local.environment_prefix}_lambda_s3_sync"
-  description      = "Lambda to synchronise S3 buckets - IBDP and cache-ingestor"
+  description      = "Lambda to synchronise S3 buckets"
   role             = aws_iam_role.rotate_api_key_role.arn
   runtime          = "python3.12"
   timeout          = 300
