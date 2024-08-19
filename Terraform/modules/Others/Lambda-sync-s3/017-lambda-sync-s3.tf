@@ -1,4 +1,4 @@
-# A Lambda function to synchronise IBDP and cache-ingestor buckets.
+# A Lambda function to synchronise S3 buckets.
 # The Lambda function will be triggered every 5 minutes.
 
 data "archive_file" "s3_sync_lambda_zip" {
