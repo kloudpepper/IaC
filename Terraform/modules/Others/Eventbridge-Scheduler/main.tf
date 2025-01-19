@@ -2,6 +2,34 @@
 ## Schedules ##
 ###############
 
+# - Datasync
+resource "aws_scheduler_schedule" "datasync_eventbridge_scheduler" {
+  name                         = "datasync_scheduler"
+  description                  = "A scheduler to trigger the DataSync task every 10 minutes"
+  state                        = "ENABLED"
+  schedule_expression_timezone = "UTC"
+
+  flexible_time_window {
+    mode = "OFF"
+  }
+
+  schedule_expression = "rate(10 minutes)"
+
+  target {
+    arn      = "arn:aws:scheduler:::aws-sdk:datasync:startTaskExecution"
+    role_arn = aws_iam_role.eventbridge_role.arn
+    input = jsonencode({
+      TaskArn = aws_datasync_task.datasync_task.arn
+    })
+    retry_policy {
+      maximum_event_age_in_seconds = 60
+      maximum_retry_attempts       = 1
+    }
+  }
+}
+
+
+
 # - Stop Aurora Cluster
 resource "aws_scheduler_schedule" "stop_aurora_cluster" {
   name                         = "stop_aurora_cluster"
@@ -154,6 +182,30 @@ resource "aws_iam_policy" "ssm_automation_eventbridge_policy" {
   }
 }
 
+# - Policy to execute DataSync task
+resource "aws_iam_policy" "datasync_eventbridge_policy" {
+  name = "datasync_eventbridge_policy"
+  policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        "Effect" : "Allow",
+        "Action" : [
+          "datasync:StartTaskExecution"
+        ],
+        "Resource" : [
+          aws_datasync_task.datasync_task.arn
+        ],
+        "Sid" : "DataSyncTaskExecution"
+      }
+    ]
+  })
+
+  tags = {
+    "Name" = "datasync_eventbridge_policy"
+  }
+}
+
 # - Policy to Start Stop Aurora Cluster
 resource "aws_iam_policy" "start_stop_aurora_policy" {
   name = "start_stop_aurora_policy"
@@ -186,6 +238,7 @@ resource "aws_iam_policy" "start_stop_aurora_policy" {
 resource "aws_iam_role_policy_attachments_exclusive" "eventbridge_policy-attachments" {
   role_name = aws_iam_role.eventbridge_role.name
   policy_arns = [
+	aws_iam_policy.datasync_eventbridge_policy.arn,
     aws_iam_policy.ssm_automation_eventbridge_policy.arn
   ]
 }
