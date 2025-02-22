@@ -185,7 +185,7 @@ resource "aws_ecs_cluster_capacity_providers" "capacity_providers" {
   }
 }
 
-### Create Auto Scaling ###
+### Autoscaling Target ###
 resource "aws_appautoscaling_target" "ecs_target" {
   for_each           = toset(local.containers)
   max_capacity       = 2
@@ -193,4 +193,37 @@ resource "aws_appautoscaling_target" "ecs_target" {
   resource_id        = "service/${var.environment_Name}-ecs-cluster/${var.environment_Name}-${each.value}-service"
   scalable_dimension = "ecs:service:DesiredCount"
   service_namespace  = "ecs"
+}
+
+### Scheduled Actions ###
+# -- STOP
+resource "aws_appautoscaling_scheduled_action" "kloudpepper_service_stop" {
+  for_each           = toset(local.containers)
+  name               = "kloudpepper_service_stop"
+  service_namespace  = "ecs"
+  resource_id        = "service/${var.environment_Name}-ecs-cluster/${var.environment_Name}-${each.value}-service"
+  scalable_dimension = "ecs:service:DesiredCount"
+  schedule           = "cron(0 18 ? * 2-6 *)"
+  timezone           = "Etc/UTC"
+
+  scalable_target_action {
+    min_capacity = 0
+    max_capacity = 0
+  }
+}
+
+# -- START
+resource "aws_appautoscaling_scheduled_action" "kloudpepper_service_start" {
+  for_each           = toset(local.containers)
+  name               = "kloudpepper_service_start"
+  service_namespace  = "ecs"
+  resource_id        = "service/${var.environment_Name}-ecs-cluster/${var.environment_Name}-${each.value}-service"
+  scalable_dimension = "ecs:service:DesiredCount"
+  schedule           = "cron(30 7 ? * 2-6 *)"
+  timezone           = "Etc/UTC"
+
+  scalable_target_action {
+    min_capacity = 1
+    max_capacity = 2
+  }
 }
