@@ -238,7 +238,7 @@ resource "aws_iam_policy" "start_stop_aurora_policy" {
 resource "aws_iam_role_policy_attachments_exclusive" "eventbridge_policy-attachments" {
   role_name = aws_iam_role.eventbridge_role.name
   policy_arns = [
-	aws_iam_policy.datasync_eventbridge_policy.arn,
+    aws_iam_policy.datasync_eventbridge_policy.arn,
     aws_iam_policy.ssm_automation_eventbridge_policy.arn
   ]
 }
