@@ -79,7 +79,7 @@ def assume_role(role_arn, session_name):
 def lambda_handler(event, context):
     try:
         # Extract variables from event JSON
-        role_arn = event['API_GATEWAY_ROLE_ARN']
+        role_arn = event['ROLE_ARN']
         usage_plan_id = event['USAGE_PLAN_ID']
         distribution_id = event['DISTRIBUTION_ID']
         origin_id = event['ORIGIN_ID']
