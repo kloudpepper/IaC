@@ -34,6 +34,10 @@ resource "aws_api_gateway_integration" "example_integration" {
   request_templates = {
     "application/json" = "{ \"statusCode\": 200 }"
   }
+
+  depends_on = [
+    aws_api_gateway_method.example_method
+  ]
 }
 
 # Create a 200 status code response
@@ -46,6 +50,10 @@ resource "aws_api_gateway_integration_response" "example_integration_response" {
   response_templates = {
     "application/json" = "{\"message\": \"Success\"}"
   }
+
+  depends_on = [
+    aws_api_gateway_integration.example_integration
+  ]
 }
 
 # Create a 200 status code method response
