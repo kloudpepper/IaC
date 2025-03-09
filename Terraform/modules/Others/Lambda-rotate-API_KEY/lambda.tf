@@ -83,11 +83,29 @@ resource "aws_iam_policy" "api_gateway_policy" {
 }
 
 # Attach the policies to the role
-resource "aws_iam_role_policy_attachments_exclusive" "policy_attachments" {
-  role_name = aws_iam_role.rotate_api_key_role.name
-  policy_arns = [
-    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-    aws_iam_policy.cloudfront_policy.arn,
-    aws_iam_policy.api_gateway_policy.arn
-  ]
+resource "aws_iam_role_policy_attachment" "lambda_attachment" {
+  role       = aws_iam_role.rotate_api_key_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_cloudfront_attachment" {
+  role       = aws_iam_role.rotate_api_key_role.name
+  policy_arn = aws_iam_policy.cloudfront_policy.arn
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_api_gateway_attachment" {
+  role       = aws_iam_role.rotate_api_key_role.name
+  policy_arn = aws_iam_policy.api_gateway_policy.arn
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }

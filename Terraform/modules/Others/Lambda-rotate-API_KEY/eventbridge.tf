@@ -72,12 +72,11 @@ resource "aws_iam_policy" "lambda_eventbridge_policy" {
   })
 }
 
-# Attach the policies to the role
-resource "aws_iam_role_policy_attachments_exclusive" "eventbridge_policies-attachments" {
-  role_name = aws_iam_role.eventbridge_role.name
-  policy_arns = [
-    aws_iam_policy.lambda_eventbridge_policy.arn
-  ]
+# Attach the policy to the role
+resource "aws_iam_role_policy_attachment" "eventbridge_lambda_attachment" {
+  role       = aws_iam_role.eventbridge_role.name
+  policy_arn = aws_iam_policy.lambda_eventbridge_policy.arn
+
   lifecycle {
     create_before_destroy = true
   }
