@@ -1,6 +1,6 @@
-#########################
-### CloudFront Module ###
-#########################
+##################
+### CloudFront ###
+##################
 
 resource "aws_cloudfront_distribution" "example" {
   origin {

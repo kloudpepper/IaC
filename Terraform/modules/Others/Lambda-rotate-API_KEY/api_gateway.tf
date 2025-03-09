@@ -1,6 +1,6 @@
-##########################
-### API Gateway Module ###
-##########################
+###################
+### API Gateway ###
+###################
 
 # Create a REST API
 resource "aws_api_gateway_rest_api" "example" {
