@@ -13,4 +13,4 @@
 ```
 
 ## Architecture Diagram:
-![](https://github.com/kloudpepper/IaC/blob/main/Terraform/images/architecture_diagram_2.png)
+![](https://github.com/kloudpepper/IaC/blob/main/Terraform/project_infra/images/architecture_diagram_2.png)
