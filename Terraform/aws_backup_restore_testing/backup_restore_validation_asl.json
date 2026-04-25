@@ -1,0 +1,392 @@
+{
+    "Comment": "AWS Backup Restore Testing validation for Aurora using only Step Functions + RDS Data API",
+    "QueryLanguage": "JSONPath",
+    "StartAt": "Initialize",
+    "TimeoutSeconds": 5400,
+    "States": {
+        "Initialize": {
+            "Type": "Pass",
+            "Parameters": {
+                "Event.$": "$",
+                "Context": {
+                    "RestoreJobId.$": "$.detail.restoreJobId",
+                    "PollCount": 0,
+                    "MaxPolls": 40,
+                    "WaitSeconds": 30,
+                    "DBInstanceClass": "db.r6g.large",
+                    "Engine": "aurora-postgresql",
+                    "Database": "PETS",
+                    "Schema": "testing",
+                    "Table": "pets",
+                    "SecretArn": "arn:aws:secretsmanager:eu-west-1:839975170650:secret:rds!cluster-13640785-2b97-47dd-b3e0-7ef711434188-drk6Rg"
+                }
+            },
+            "Next": "DescribeRestoreJob"
+        },
+        "DescribeRestoreJob": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::aws-sdk:backup:describeRestoreJob",
+            "Parameters": {
+                "RestoreJobId.$": "$.Context.RestoreJobId"
+            },
+            "ResultPath": "$.Restore",
+            "Next": "BuildIdentifiers",
+            "Retry": [
+                {
+                    "ErrorEquals": [
+                        "Backup.ServiceUnavailableException",
+                        "States.TaskFailed"
+                    ],
+                    "IntervalSeconds": 10,
+                    "MaxAttempts": 6,
+                    "BackoffRate": 2
+                }
+            ],
+            "Catch": [
+                {
+                    "ErrorEquals": [
+                        "States.ALL"
+                    ],
+                    "ResultPath": "$.Failure",
+                    "Next": "ReportFailedNoDelete"
+                }
+            ]
+        },
+        "BuildIdentifiers": {
+            "Type": "Pass",
+            "Parameters": {
+                "Event.$": "$.Event",
+                "Restore.$": "$.Restore",
+                "Context": {
+                    "RestoreJobId.$": "$.Context.RestoreJobId",
+                    "PollCount.$": "$.Context.PollCount",
+                    "MaxPolls.$": "$.Context.MaxPolls",
+                    "WaitSeconds.$": "$.Context.WaitSeconds",
+                    "DBInstanceClass.$": "$.Context.DBInstanceClass",
+                    "Engine.$": "$.Context.Engine",
+                    "Database.$": "$.Context.Database",
+                    "Schema.$": "$.Context.Schema",
+                    "Table.$": "$.Context.Table",
+                    "SecretArn.$": "$.Context.SecretArn",
+                    "CreatedResourceArn.$": "$.Restore.CreatedResourceArn",
+                    "DBClusterIdentifier.$": "States.ArrayGetItem(States.StringSplit($.Restore.CreatedResourceArn, ':'), 6)",
+                    "DBInstanceIdentifier.$": "States.Format('rt-{}', $.Restore.RestoreJobId)",
+                    "Sql.$": "States.Format('SELECT 1 FROM \"{}\".\"{}\" LIMIT 1;', $.Context.Schema, $.Context.Table)"
+                }
+            },
+            "Next": "EnableDataApi"
+        },
+        "EnableDataApi": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::aws-sdk:rds:enableHttpEndpoint",
+            "Parameters": {
+                "ResourceArn.$": "$.Context.CreatedResourceArn"
+            },
+            "ResultPath": "$.EnableDataApiResult",
+            "Next": "CreateWriterInstance",
+            "Retry": [
+                {
+                    "ErrorEquals": [
+                        "Rds.ThrottlingException",
+                        "Rds.InvalidResourceStateFault",
+                        "States.TaskFailed"
+                    ],
+                    "IntervalSeconds": 10,
+                    "MaxAttempts": 6,
+                    "BackoffRate": 2
+                }
+            ],
+            "Catch": [
+                {
+                    "ErrorEquals": [
+                        "States.ALL"
+                    ],
+                    "ResultPath": "$.Failure",
+                    "Next": "ReportFailedNoDelete"
+                }
+            ]
+        },
+        "CreateWriterInstance": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::aws-sdk:rds:createDBInstance",
+            "Parameters": {
+                "DbClusterIdentifier.$": "$.Context.DBClusterIdentifier",
+                "DbInstanceIdentifier.$": "$.Context.DBInstanceIdentifier",
+                "DbInstanceClass.$": "$.Context.DBInstanceClass",
+                "Engine.$": "$.Context.Engine",
+                "PubliclyAccessible": false,
+                "AutoMinorVersionUpgrade": false
+            },
+            "ResultPath": "$.CreateInstanceResult",
+            "Next": "WaitForInstance",
+            "Retry": [
+                {
+                    "ErrorEquals": [
+                        "Rds.ThrottlingException",
+                        "Rds.InvalidDBClusterStateFault",
+                        "Rds.DBClusterNotFoundFault",
+                        "States.TaskFailed"
+                    ],
+                    "IntervalSeconds": 15,
+                    "MaxAttempts": 8,
+                    "BackoffRate": 2
+                }
+            ],
+            "Catch": [
+                {
+                    "ErrorEquals": [
+                        "States.ALL"
+                    ],
+                    "ResultPath": "$.Failure",
+                    "Next": "ReportFailedNoDelete"
+                }
+            ]
+        },
+        "WaitForInstance": {
+            "Type": "Wait",
+            "SecondsPath": "$.Context.WaitSeconds",
+            "Next": "DescribeWriterInstance"
+        },
+        "DescribeWriterInstance": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::aws-sdk:rds:describeDBInstances",
+            "Parameters": {
+                "DbInstanceIdentifier.$": "$.Context.DBInstanceIdentifier"
+            },
+            "ResultPath": "$.InstanceDescribe",
+            "Next": "CheckInstanceState",
+            "Retry": [
+                {
+                    "ErrorEquals": [
+                        "Rds.ThrottlingException",
+                        "States.TaskFailed"
+                    ],
+                    "IntervalSeconds": 10,
+                    "MaxAttempts": 5,
+                    "BackoffRate": 2
+                }
+            ],
+            "Catch": [
+                {
+                    "ErrorEquals": [
+                        "States.ALL"
+                    ],
+                    "Next": "IncrementPollCount"
+                }
+            ]
+        },
+        "CheckInstanceState": {
+            "Type": "Choice",
+            "Choices": [
+                {
+                    "Variable": "$.InstanceDescribe.DbInstances[0].DbInstanceStatus",
+                    "StringEquals": "available",
+                    "Next": "RunValidationSql"
+                },
+                {
+                    "Or": [
+                        {
+                            "Variable": "$.InstanceDescribe.DbInstances[0].DbInstanceStatus",
+                            "StringEquals": "failed"
+                        },
+                        {
+                            "Variable": "$.InstanceDescribe.DbInstances[0].DbInstanceStatus",
+                            "StringEquals": "incompatible-restore"
+                        },
+                        {
+                            "Variable": "$.InstanceDescribe.DbInstances[0].DbInstanceStatus",
+                            "StringEquals": "incompatible-network"
+                        }
+                    ],
+                    "Next": "ReportFailedThenDelete"
+                }
+            ],
+            "Default": "IncrementPollCount"
+        },
+        "IncrementPollCount": {
+            "Type": "Pass",
+            "Parameters": {
+                "Event.$": "$.Event",
+                "Restore.$": "$.Restore",
+                "Context": {
+                    "RestoreJobId.$": "$.Context.RestoreJobId",
+                    "PollCount.$": "States.MathAdd($.Context.PollCount, 1)",
+                    "MaxPolls.$": "$.Context.MaxPolls",
+                    "WaitSeconds.$": "$.Context.WaitSeconds",
+                    "DBInstanceClass.$": "$.Context.DBInstanceClass",
+                    "Engine.$": "$.Context.Engine",
+                    "Database.$": "$.Context.Database",
+                    "Schema.$": "$.Context.Schema",
+                    "Table.$": "$.Context.Table",
+                    "SecretArn.$": "$.Context.SecretArn",
+                    "CreatedResourceArn.$": "$.Context.CreatedResourceArn",
+                    "DBClusterIdentifier.$": "$.Context.DBClusterIdentifier",
+                    "DBInstanceIdentifier.$": "$.Context.DBInstanceIdentifier",
+                    "Sql.$": "$.Context.Sql"
+                }
+            },
+            "Next": "PollsExceeded?"
+        },
+        "PollsExceeded?": {
+            "Type": "Choice",
+            "Choices": [
+                {
+                    "Variable": "$.Context.PollCount",
+                    "NumericGreaterThanEqualsPath": "$.Context.MaxPolls",
+                    "Next": "ReportTimedOut"
+                }
+            ],
+            "Default": "WaitForInstance"
+        },
+        "RunValidationSql": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::aws-sdk:rdsdata:executeStatement",
+            "Parameters": {
+                "ResourceArn.$": "$.Context.CreatedResourceArn",
+                "SecretArn.$": "$.Context.SecretArn",
+                "Database.$": "$.Context.Database",
+                "Sql.$": "$.Context.Sql"
+            },
+            "ResultPath": "$.ValidationResult",
+            "Next": "ReportSuccessful",
+            "Retry": [
+                {
+                    "ErrorEquals": [
+                        "RdsDataService.BadRequestException",
+                        "States.TaskFailed"
+                    ],
+                    "IntervalSeconds": 5,
+                    "MaxAttempts": 2,
+                    "BackoffRate": 2
+                }
+            ],
+            "Catch": [
+                {
+                    "ErrorEquals": [
+                        "States.ALL"
+                    ],
+                    "ResultPath": "$.Failure",
+                    "Next": "ReportFailedThenDelete"
+                }
+            ]
+        },
+        "ReportSuccessful": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::aws-sdk:backup:putRestoreValidationResult",
+            "Parameters": {
+                "RestoreJobId.$": "$.Context.RestoreJobId",
+                "ValidationStatus": "SUCCESSFUL",
+                "ValidationStatusMessage.$": "States.Format('Aurora restore validated successfully. Table checked: {}.{}', $.Context.Schema, $.Context.Table)"
+            },
+            "ResultPath": "$.ReportResult",
+            "Next": "DeleteInstance",
+            "Catch": [
+                {
+                    "ErrorEquals": [
+                        "States.ALL"
+                    ],
+                    "ResultPath": "$.ReportResult",
+                    "Next": "DeleteInstance"
+                }
+            ]
+        },
+        "ReportFailedNoDelete": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::aws-sdk:backup:putRestoreValidationResult",
+            "Parameters": {
+                "RestoreJobId.$": "$.Context.RestoreJobId",
+                "ValidationStatus": "FAILED",
+                "ValidationStatusMessage": "Validation failed before temporary DB instance creation."
+            },
+            "End": true,
+            "Catch": [
+                {
+                    "ErrorEquals": [
+                        "States.ALL"
+                    ],
+                    "Next": "Finish"
+                }
+            ]
+        },
+        "ReportFailedThenDelete": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::aws-sdk:backup:putRestoreValidationResult",
+            "Parameters": {
+                "RestoreJobId.$": "$.Context.RestoreJobId",
+                "ValidationStatus": "FAILED",
+                "ValidationStatusMessage.$": "States.Format('Validation failed for {}.{}', $.Context.Schema, $.Context.Table)"
+            },
+            "ResultPath": "$.ReportResult",
+            "Next": "DeleteInstance",
+            "Catch": [
+                {
+                    "ErrorEquals": [
+                        "States.ALL"
+                    ],
+                    "ResultPath": "$.ReportResult",
+                    "Next": "DeleteInstance"
+                }
+            ]
+        },
+        "ReportTimedOut": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::aws-sdk:backup:putRestoreValidationResult",
+            "Parameters": {
+                "RestoreJobId.$": "$.Context.RestoreJobId",
+                "ValidationStatus": "TIMED_OUT",
+                "ValidationStatusMessage": "Timed out waiting for the restored Aurora writer instance to become available."
+            },
+            "ResultPath": "$.ReportResult",
+            "Next": "DeleteInstance",
+            "Catch": [
+                {
+                    "ErrorEquals": [
+                        "States.ALL"
+                    ],
+                    "ResultPath": "$.ReportResult",
+                    "Next": "DeleteInstance"
+                }
+            ]
+        },
+        "DeleteInstance": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::aws-sdk:rds:deleteDBInstance",
+            "Parameters": {
+                "DbInstanceIdentifier.$": "$.Context.DBInstanceIdentifier",
+                "SkipFinalSnapshot": true,
+                "DeleteAutomatedBackups": true
+            },
+            "End": true,
+            "Retry": [
+                {
+                    "ErrorEquals": [
+                        "Rds.ThrottlingException",
+                        "Rds.InvalidDBInstanceStateFault",
+                        "States.TaskFailed"
+                    ],
+                    "IntervalSeconds": 15,
+                    "MaxAttempts": 8,
+                    "BackoffRate": 2
+                }
+            ],
+            "Catch": [
+                {
+                    "ErrorEquals": [
+                        "Rds.DBInstanceNotFoundFault"
+                    ],
+                    "Next": "Finish"
+                },
+                {
+                    "ErrorEquals": [
+                        "States.ALL"
+                    ],
+                    "Next": "Finish"
+                }
+            ]
+        },
+        "Finish": {
+            "Type": "Pass",
+            "End": true
+        }
+    }
+}
