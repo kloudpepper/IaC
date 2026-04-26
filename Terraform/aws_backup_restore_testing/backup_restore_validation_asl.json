@@ -13,12 +13,12 @@
                     "PollCount": 0,
                     "MaxPolls": 40,
                     "WaitSeconds": 30,
-                    "DBInstanceClass": "db.r6g.large",
-                    "Engine": "aurora-postgresql",
-                    "Database": "PETS",
-                    "Schema": "testing",
-                    "Table": "pets",
-                    "SecretArn": "arn:aws:secretsmanager:eu-west-1:839975170650:secret:rds!cluster-13640785-2b97-47dd-b3e0-7ef711434188-drk6Rg"
+                    "DBInstanceClass": "${db_instance_class}",
+                    "Engine": "${engine}",
+                    "Database": "${database}",
+                    "Schema": "${schema}",
+                    "Table": "${table}",
+                    "SecretArn": "${secret_arn}"
                 }
             },
             "Next": "DescribeRestoreJob"
